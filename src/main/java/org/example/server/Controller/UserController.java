@@ -5,37 +5,39 @@ import org.example.server.dao.UserDAO;
 import java.sql.SQLException;
 
 public class UserController {
-    private UserDAO userDAO;
+    private static UserDAO userDAO;
     public UserController() throws SQLException {
-        this.userDAO = new UserDAO();
+        userDAO = new UserDAO();
     }
-    public boolean createUser(String name, String phoneNumber, String email, String password, String userRole, String address, String profileImage, String bankName, String bankAccountNumber) {
-        try {
-            if(userDAO.doesUserExistByPhoneNumber(phoneNumber)) {
-                //throw new RuntimeException("User with this phone number already exists.");
-                return false; // User already exists, return false
-            }
-            User newUser = new User(name, phoneNumber, email, password, userRole, address, profileImage, bankName, bankAccountNumber);
-            userDAO.saveUser(newUser); // Save the new user
-            return true; // User created successfully
-        } catch (SQLException e) {
-            throw new RuntimeException("Error creating user: " + e.getMessage(), e);
+    public boolean addUser(User user) throws SQLException {
+        if(userDAO.doesUserExistByPhoneNumber(user.getPhoneNumber()) ||
+                userDAO.doesUserExistByEmail(user.getEmail()) ){
+            return false; // User already exists, return false
         }
+        else{
+            UserDAO.saveUser(user);
+            return true; // User added successfully
+        }
+
     }
 
-    public boolean doesUserExist(String phoneNumber, String password) {
+
+    public static boolean doesUserExist(String phoneNumber) {
         try {
-            User user = userDAO.getUserByPhoneAndPassword(phoneNumber, password);
-            return user != null; // Returns true if user exists, false otherwise
+            // User does not exist
+            return userDAO.doesUserExistByPhone(phoneNumber); // User exists
         } catch (SQLException e) {
             throw new RuntimeException("Error checking user existence: " + e.getMessage(), e);
         }
     }
-    public User getUserByPhoneAndPassword(String phoneNumber, String password) {
+    public static User getUserByPhoneAndPassword(String phoneNumber, String password) {
         try {
             return userDAO.getUserByPhoneAndPassword(phoneNumber, password);
         } catch (SQLException e) {
             throw new RuntimeException("Error retrieving user: " + e.getMessage(), e);
         }
+    }
+    public static String getUserIDByPhoneNumber(String phoneNumber) {
+        return userDAO.getUserIDByPhoneNumber(phoneNumber);
     }
 }

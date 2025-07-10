@@ -1,5 +1,7 @@
 package org.example.server.modules;
 
+import org.json.JSONObject;
+
 public class User
 {
     private String name;
@@ -12,18 +14,38 @@ public class User
     private String profileImage;
     private String bank_name;
     private String bank_account_number;
+    private String token = "";
 
     public User(String name, String phone_number, String email, String password, String user_role, String address, String profileImage,
                 String bank_name, String bank_account_number) {
         this.name = name;
         this.phone_number = phone_number;
-        this.email = email;
         this.password = password;
         this.user_role = user_role;
         this.address = address;
+        this.email = email;
         this.profileImage = profileImage;
         this.bank_name = bank_name;
         this.bank_account_number = bank_account_number;
+    }
+
+    public User(JSONObject jsonObject){
+        this.name = jsonObject.getString("full_name").trim();
+        this.phone_number = jsonObject.getString("phone").trim();
+        this.password = jsonObject.getString("password").trim();
+        this.user_role = jsonObject.getString("role").trim();
+        this.address = jsonObject.optString("address", "").trim();
+        this.email = jsonObject.getString("email").trim();
+        this.profileImage = jsonObject.optString("profileImageBase64", "").trim();
+
+        JSONObject bankInfo = jsonObject.optJSONObject("bank_info");
+        if (bankInfo != null) {
+            this.bank_name = bankInfo.optString("bank_name", "").trim();
+            this.bank_account_number = bankInfo.optString("account_number", "").trim();
+        } else {
+            this.bank_name = "";
+            this.bank_account_number = "";
+        }
     }
 
     public User(){
@@ -59,9 +81,13 @@ public class User
     public String getBankAccountNumber() {
         return bank_account_number;
     }
+    public String getToken() {
+        return token;
+    }
     public void setName(String name) {
         this.name = name;
     }
+
     public void setPhoneNumber(String phone_number) {
         this.phone_number = phone_number;
     }
@@ -88,6 +114,9 @@ public class User
     }
     public void setBankAccountNumber(String bank_account_number) {
         this.bank_account_number = bank_account_number;
+    }
+    public void setToken(String token){
+        this.token = token;
     }
     @Override
     public String toString() {
