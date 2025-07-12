@@ -37,7 +37,7 @@ public class NewUserHttpHandler implements HttpHandler {
                     JSONObject jsonObject = JsonHandler.getObject(exchange.getRequestBody());
                     System.out.println(jsonObject);
                     // Validate required fields
-                    if (jsonObject.has("email") || jsonObject.has("password")) {
+                    if (jsonObject.getString("email").isEmpty() || jsonObject.getString("password").isEmpty() || jsonObject.isNull("email") || jsonObject.isNull("password")) {
                         sendErrorResponse(exchange, 400, "Missing required fields: email or password");
                         break;
                     }
