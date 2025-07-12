@@ -35,8 +35,9 @@ public class NewUserHttpHandler implements HttpHandler {
                     // Adding the user by passing the data one layer up to Controller layer
                     //JSONObject jsonObject = new JSONObject(new String(exchange.getRequestBody().readAllBytes()));
                     JSONObject jsonObject = JsonHandler.getObject(exchange.getRequestBody());
+                    System.out.println(jsonObject);
                     // Validate required fields
-                    if (!jsonObject.has("email") || !jsonObject.has("password")) {
+                    if (jsonObject.has("email") || jsonObject.has("password")) {
                         sendErrorResponse(exchange, 400, "Missing required fields: email or password");
                         break;
                     }
@@ -46,6 +47,7 @@ public class NewUserHttpHandler implements HttpHandler {
                         // If the user is added successfully, send a 200 OK response
                         jsonResponse = new JSONObject();
                         String userID = userController.getUserIDByPhoneNumber(newUser.getPhoneNumber());
+                        String PhoneNumber = jsonResponse.getString("phone");
                         if(userID != null && !userID.isEmpty())
                             newUser.setUserID(userID);
                         else {
@@ -54,7 +56,7 @@ public class NewUserHttpHandler implements HttpHandler {
                         }
                         jsonResponse.put("message", "User registered successfully");
                         jsonResponse.put("userID", newUser.getUserID());
-                        jsonResponse.put("token", JWTHandler.generateToken(String.valueOf(newUser.getUserID())));//JWT token generation should be implemented later
+                        jsonResponse.put("token", JWTHandler.generateToken(PhoneNumber));//JWT token generation should be implemented later
                         responseBytes = jsonResponse.toString().getBytes(StandardCharsets.UTF_8);
                         exchange.getResponseHeaders().set("Content-Type", "application/json");
                         exchange.sendResponseHeaders(200, responseBytes.length);

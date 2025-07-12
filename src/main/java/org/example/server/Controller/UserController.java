@@ -21,6 +21,18 @@ public class UserController {
 
     }
 
+    public User getUserByPhone(String phone) throws SQLException {
+        UserDAO userDAO = new UserDAO();
+        return userDAO.getUserByPhone(phone);
+    }
+
+    public void updateUser(User user) throws SQLException {
+        UserDAO userDAO = new UserDAO();
+        userDAO.updateUser(user);
+    }
+
+
+
 
     public static boolean doesUserExist(String phoneNumber) {
         try {
@@ -41,3 +53,4 @@ public class UserController {
         return userDAO.getUserIDByPhoneNumber(phoneNumber);
     }
 }
+

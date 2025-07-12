@@ -43,7 +43,7 @@ public class LoginUserHttpHandler implements HttpHandler {
                             User loggedInUser = UserController.getUserByPhoneAndPassword(phoneNumber, password);
                             JSONObject user = getJsonObject(loggedInUser);
                             responseJson.put("message", "You successfully logged in!");
-                            responseJson.put("token", JWTHandler.generateToken(String.valueOf(loggedInUser.getUserID())));// JWT token generation should be implemented later
+                            responseJson.put("token", JWTHandler.generateToken(phoneNumber)); // JWT token generation should be implemented later
                             responseJson.put("user", user);
                             byte[] responseBytes = responseJson.toString().getBytes(StandardCharsets.UTF_8);
                             exchange.getResponseHeaders().set("Content-Type", "application/json");
