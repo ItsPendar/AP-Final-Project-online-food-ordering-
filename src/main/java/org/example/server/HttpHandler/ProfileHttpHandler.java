@@ -8,6 +8,7 @@ import org.example.server.modules.User;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import io.jsonwebtoken.Claims;
@@ -42,9 +43,14 @@ public class ProfileHttpHandler implements HttpHandler {
                 return;
             }
 
-            String phone = claims.getSubject();
+            String userID = claims.getSubject();
 
-            User user = UserController.getUserByPhoneAndPassword(phone, phone);
+            User user = null;
+            try {
+                user = UserController.getUserByID(Integer.parseInt(userID));
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
 
 
             try {
@@ -56,15 +62,19 @@ public class ProfileHttpHandler implements HttpHandler {
                 }
 
                 JSONObject userJson = new JSONObject();
+                userJson.put("id",UserController.getUserIDByPhoneNumber(user.getPhoneNumber()));
+                System.out.println("also the user ID here" + UserController.getUserIDByPhoneNumber(user.getPhoneNumber()));
                 userJson.put("name", user.getName());
                 userJson.put("phone", user.getPhoneNumber());
                 userJson.put("email", user.getEmail());
                 userJson.put("role", user.getUserRole());
                 userJson.put("address", user.getAddress());
-                userJson.put("profile_image", user.getProfileImage());
+                userJson.put("profileImageBase64", user.getProfileImage());
                 userJson.put("bank_info", new JSONObject()
                         .put("bank_name", user.getBankName())
                         .put("account_number", user.getBankAccountNumber()));
+
+                System.out.println(userJson);
 
                 byte[] responseBytes = userJson.toString().getBytes();
                 exchange.sendResponseHeaders(200, responseBytes.length);
@@ -79,17 +89,17 @@ public class ProfileHttpHandler implements HttpHandler {
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
 
-            String phone = json.optString("phone", null);
-            String password = json.optString("password", null);
-
-            if (phone == null || password == null) {
-                sendErrorResponse(exchange, 400, "Phone and password are required for authentication.");
+            String oldPhoneNumber = json.optString("old_phone_number", null);
+            String newPhoneNumber = json.optString("phone", null);
+            System.out.println("new phone number is : " + newPhoneNumber);
+            if (newPhoneNumber== null) {
+                sendErrorResponse(exchange, 400, "Phone Number is required for authentication.");
                 return;
             }
 
             try {
                 UserController userController = new UserController();
-                User user = userController.getUserByPhoneAndPassword(phone, password);
+                User user = UserController.getUserByPhone(oldPhoneNumber);
 
                 if (user == null) {
                     sendErrorResponse(exchange, 404, "User not found.");
@@ -99,24 +109,25 @@ public class ProfileHttpHandler implements HttpHandler {
                 String name = json.optString("full_name", null);
                 String address = json.optString("address", null);
                 String email = json.optString("email", null);
-                String profileImage = json.optString("profile_image", null);
+                String profileImage = json.optString("profileImageBase64", null);
 
                 JSONObject bankInfoJson = json.optJSONObject("bank_info");
-                String bankName = null;
-                String accountNumber = null;
+                String bankName = " ";
+                String accountNumber = " ";
                 if (bankInfoJson != null) {
                     bankName = bankInfoJson.optString("bank_name", null);
                     accountNumber = bankInfoJson.optString("account_number", null);
                 }
 
                 if (name != null) user.setName(name);
+                if(newPhoneNumber != null) user.setPhoneNumber(newPhoneNumber);
                 if (address != null) user.setAddress(address);
                 if (email != null) user.setEmail(email);
                 if (profileImage != null) user.setProfileImage(profileImage);
                 if (bankName != null) user.setBankName(bankName);
                 if (accountNumber != null) user.setBankAccountNumber(accountNumber);
 
-                userController.updateUser(user);
+                userController.updateUser(user,newPhoneNumber,newPhoneNumber);
 
                 responseJson.put("message", "User profile updated successfully");
 

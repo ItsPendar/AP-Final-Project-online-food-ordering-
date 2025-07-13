@@ -21,18 +21,20 @@ public class UserController {
 
     }
 
-    public User getUserByPhone(String phone) throws SQLException {
+    public static User getUserByPhone(String phone) throws SQLException {
         UserDAO userDAO = new UserDAO();
         return userDAO.getUserByPhone(phone);
     }
 
-    public void updateUser(User user) throws SQLException {
+    public static User getUserByID(int ID) throws SQLException {
         UserDAO userDAO = new UserDAO();
-        userDAO.updateUser(user);
+        return UserDAO.getUserByID(ID);
     }
 
-
-
+    public void updateUser(User user, String newPhoneNumber, String oldPhoneNumber) throws SQLException {
+        UserDAO userDAO = new UserDAO();
+        UserDAO.updateUser(user,newPhoneNumber,oldPhoneNumber);
+    }
 
     public static boolean doesUserExist(String phoneNumber) {
         try {
