@@ -7,7 +7,7 @@ public class DatabaseConnectionManager
 {
     private static final String JDBC_URL = "jdbc:postgresql://localhost:5432/postgres";
     private static final String USERNAME = "postgres";
-    private static final String PASSWORD = "itispostgre9173";
+    private static final String PASSWORD = "7584";
 
     private static Connection connection;
 

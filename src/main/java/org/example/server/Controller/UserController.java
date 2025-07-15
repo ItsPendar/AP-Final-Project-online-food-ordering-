@@ -6,15 +6,16 @@ import java.sql.SQLException;
 
 public class UserController {
     private static UserDAO userDAO;
+
     public UserController() throws SQLException {
         userDAO = new UserDAO();
     }
+
     public boolean addUser(User user) throws SQLException {
-        if(userDAO.doesUserExistByPhoneNumber(user.getPhoneNumber()) ||
-                userDAO.doesUserExistByEmail(user.getEmail()) ){
+        if (userDAO.doesUserExistByPhoneNumber(user.getPhoneNumber()) ||
+                userDAO.doesUserExistByEmail(user.getEmail())) {
             return false; // User already exists, return false
-        }
-        else{
+        } else {
             UserDAO.saveUser(user);
             return true; // User added successfully
         }
@@ -33,7 +34,7 @@ public class UserController {
 
     public void updateUser(User user, String newPhoneNumber, String oldPhoneNumber) throws SQLException {
         UserDAO userDAO = new UserDAO();
-        UserDAO.updateUser(user,newPhoneNumber,oldPhoneNumber);
+        UserDAO.updateUser(user, newPhoneNumber, oldPhoneNumber);
     }
 
     public static boolean doesUserExist(String phoneNumber) {
@@ -44,6 +45,7 @@ public class UserController {
             throw new RuntimeException("Error checking user existence: " + e.getMessage(), e);
         }
     }
+
     public static User getUserByPhoneAndPassword(String phoneNumber, String password) {
         try {
             return userDAO.getUserByPhoneAndPassword(phoneNumber, password);
@@ -51,8 +53,9 @@ public class UserController {
             throw new RuntimeException("Error retrieving user: " + e.getMessage(), e);
         }
     }
+
     public static String getUserIDByPhoneNumber(String phoneNumber) {
         return userDAO.getUserIDByPhoneNumber(phoneNumber);
     }
-}
 
+}

@@ -77,7 +77,26 @@ public class UserDAO {
         return null; // User not found
     }
 
-    public User getUserByPhone(String phoneNumber) throws SQLException {
+    public static String getUserRoleByUserID(String userID) {
+        try {
+            String query = "SELECT user_role FROM users WHERE userID = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setInt(1, Integer.parseInt(userID));
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("user_role");
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
+    public static User getUserByPhone(String phoneNumber) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE phone_number = ?");
         preparedStatement.setString(1,phoneNumber);
 
@@ -168,7 +187,7 @@ public class UserDAO {
         return false; // User does not exist
     }
 
-    public void updateUser(User user,String newPhoneNumber, String oldPhoneNumber) throws SQLException {
+    public static void updateUser(User user,String newPhoneNumber, String oldPhoneNumber) throws SQLException {
 //        String sql = "UPDATE users SET name = ?,phone_number = ?, email = ?, address = ?, profileimage = ?, bank_name = ?, bank_account_number = ? WHERE phone_number = ?";
 //        PreparedStatement preparedStatement =
 //                connection.prepareStatement(sql);

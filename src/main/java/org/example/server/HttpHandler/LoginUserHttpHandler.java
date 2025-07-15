@@ -1,5 +1,6 @@
 package org.example.server.HttpHandler;
 
+import ch.qos.logback.core.subst.Token;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import io.jsonwebtoken.Claims;
@@ -45,7 +46,6 @@ public class LoginUserHttpHandler implements HttpHandler {
                             responseJson.put("message", "You successfully logged in!");
                             responseJson.put("token", JWTHandler.generateToken(UserController.getUserIDByPhoneNumber(phoneNumber)));
                             System.out.println("User ID : " + UserController.getUserIDByPhoneNumber(phoneNumber));
-                            responseJson.put("user", user);
                             byte[] responseBytes = responseJson.toString().getBytes(StandardCharsets.UTF_8);
                             exchange.getResponseHeaders().set("Content-Type", "application/json");
                             exchange.sendResponseHeaders(200, responseBytes.length);
