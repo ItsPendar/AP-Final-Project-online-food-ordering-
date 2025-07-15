@@ -1,45 +1,15 @@
 package org.example.server.modules;
 
 public class Restaurant {
-    private String restaurantID;
-    private String ownerID;
     private String name;
     private String address;
-    private String phoneNumber;
-    private String workingHours;
-    private String logoImage;
-    private boolean isApproved;
+    private String phone;
+    private String logoBase64;
+    private int taxFee;
+    private int additionalFee;
 
-    public Restaurant() {}
+    // Getters and Setters
 
-    public Restaurant(String restaurantID, String ownerID, String name, String address,
-                      String phoneNumber, String workingHours, String logoImage, boolean isApproved) {
-        this.restaurantID = restaurantID;
-        this.ownerID = ownerID;
-        this.name = name;
-        this.address = address;
-        this.phoneNumber = phoneNumber;
-        this.workingHours = workingHours;
-        this.logoImage = logoImage;
-        this.isApproved = isApproved;
-    }
-
-    // Getters & Setters
-    public String getRestaurantID() {
-        return restaurantID;
-    }
-
-    public void setRestaurantID(String restaurantID) {
-        this.restaurantID = restaurantID;
-    }
-
-    public String getOwnerID() {
-        return ownerID;
-    }
-
-    public void setOwnerID(String ownerID) {
-        this.ownerID = ownerID;
-    }
 
     public String getName() {
         return name;
@@ -57,35 +27,35 @@ public class Restaurant {
         this.address = address;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public String getWorkingHours() {
-        return workingHours;
+    public String getLogoBase64() {
+        return logoBase64;
     }
 
-    public void setWorkingHours(String workingHours) {
-        this.workingHours = workingHours;
+    public void setLogoBase64(String logoBase64) {
+        this.logoBase64 = logoBase64;
     }
 
-    public String getLogoImage() {
-        return logoImage;
+    public int getTaxFee() {
+        return taxFee;
     }
 
-    public void setLogoImage(String logoImage) {
-        this.logoImage = logoImage;
+    public void setTaxFee(int taxFee) {
+        this.taxFee = taxFee;
     }
 
-    public boolean isApproved() {
-        return isApproved;
+    public int getAdditionalFee() {
+        return additionalFee;
     }
 
-    public void setApproved(boolean approved) {
-        isApproved = approved;
+    public void setAdditionalFee(int additionalFee) {
+        this.additionalFee = additionalFee;
     }
 }

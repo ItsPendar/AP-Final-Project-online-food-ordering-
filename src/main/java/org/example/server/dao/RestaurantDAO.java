@@ -14,58 +14,58 @@ public class RestaurantDAO {
     }
 
     public void createRestaurantTable() throws SQLException {
-        PreparedStatement stmt = connection.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS restaurants (" +
-                        "restaurant_id SERIAL PRIMARY KEY, " +
-                        "owner_id VARCHAR(255) NOT NULL, " +
-                        "name VARCHAR(255) NOT NULL, " +
-                        "address TEXT, " +
-                        "phone_number VARCHAR(20), " +
-                        "working_hours VARCHAR(100), " +
-                        "logo_image TEXT, " +
-                        "is_approved BOOLEAN DEFAULT FALSE" +
-                        ")"
-        );
+        String query = """
+        CREATE TABLE IF NOT EXISTS restaurants (
+            restaurant_id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            address TEXT,
+            phone VARCHAR(20),
+            logo_base64 TEXT,
+            tax_fee INTEGER DEFAULT 9,
+            additional_fee INTEGER DEFAULT 2,
+            owner_id INTEGER,
+            FOREIGN KEY (owner_id) REFERENCES users(userID)
+        )
+    """;
+
+        PreparedStatement stmt = connection.prepareStatement(query);
         stmt.executeUpdate();
     }
 
 
     public List<Restaurant> getAllRestaurants() throws SQLException {
         List<Restaurant> restaurants = new ArrayList<>();
-
-        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM restaurants");
+        String query = "SELECT * FROM restaurants";
+        PreparedStatement stmt = connection.prepareStatement(query);
         ResultSet rs = stmt.executeQuery();
 
         while (rs.next()) {
             Restaurant restaurant = new Restaurant();
-            restaurant.setRestaurantID(String.valueOf(rs.getInt("restaurant_id")));
-            restaurant.setOwnerID(rs.getString("owner_id"));
             restaurant.setName(rs.getString("name"));
             restaurant.setAddress(rs.getString("address"));
-            restaurant.setLogoImage(rs.getString("logo_image"));
-
+            restaurant.setPhone(rs.getString("phone"));
+            restaurant.setLogoBase64(rs.getString("logo_base64"));
+            restaurant.setTaxFee(rs.getInt("tax_fee"));
+            restaurant.setAdditionalFee(rs.getInt("additional_fee"));
             restaurants.add(restaurant);
         }
 
         return restaurants;
     }
 
+
     public void createRestaurant(Restaurant restaurant) throws SQLException {
-        PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO restaurants (owner_id, name, address, phone_number, working_hours, logo_image, is_approved) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?)"
-        );
-
-        stmt.setString(1, restaurant.getOwnerID());
-        stmt.setString(2, restaurant.getName());
-        stmt.setString(3, restaurant.getAddress());
-        stmt.setString(4, restaurant.getPhoneNumber());
-        stmt.setString(5, restaurant.getWorkingHours());
-        stmt.setString(6, restaurant.getLogoImage());
-        stmt.setBoolean(7, restaurant.isApproved());
-
+        String query = "INSERT INTO restaurants (name, address, phone, logo_base64, tax_fee, additional_fee) VALUES (?, ?, ?, ?, ?, ?)";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setString(1, restaurant.getName());
+        stmt.setString(2, restaurant.getAddress());
+        stmt.setString(3, restaurant.getPhone());
+        stmt.setString(4, restaurant.getLogoBase64());
+        stmt.setInt(5, restaurant.getTaxFee());
+        stmt.setInt(6, restaurant.getAdditionalFee());
         stmt.executeUpdate();
     }
+
 
 
 

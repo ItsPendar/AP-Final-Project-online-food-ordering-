@@ -35,10 +35,9 @@ public class RestaurantHttpHandler implements HttpHandler {
             JSONArray responseArray = new JSONArray();
             for (Restaurant r : restaurants) {
                 JSONObject obj = new JSONObject();
-                obj.put("id", r.getRestaurantID());
                 obj.put("name", r.getName());
                 obj.put("address", r.getAddress());
-                obj.put("logo_image", r.getLogoImage());
+                obj.put("logobase64", r.getLogoBase64());
                 responseArray.put(obj);
             }
 
@@ -67,56 +66,22 @@ public class RestaurantHttpHandler implements HttpHandler {
             return;
         }
 
-        String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            sendErrorResponse(exchange, 401, "Missing or invalid Authorization header.");
-            return;
-        }
-
-        String token = authHeader.substring("Bearer ".length());
-        Claims claims = JWTHandler.verifyToken(token);
-        if (claims == null) {
-            sendErrorResponse(exchange, 401, "Invalid or expired token.");
-            return;
-        }
-
-        String userID = claims.getSubject();
-        String userRole = UserDAO.getUserRoleByUserID(userID);
-
-
-        if (userRole == null || !userRole.equals("seller")) {
-            sendErrorResponse(exchange, 403, "Only sellers can create restaurants.");
-            return;
-        }
-
         try {
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
 
-            String name = json.optString("name");
-            String address = json.optString("address");
-            String phoneNumber = json.optString("phone");
-            String workingHours = json.optString("working_hours");
-            String logoImage = json.optString("logo_image");
-
-            if (name.isEmpty() || address.isEmpty() || phoneNumber.isEmpty()) {
-                sendErrorResponse(exchange, 400, "Missing required fields.");
-                return;
-            }
-
             Restaurant restaurant = new Restaurant();
-            restaurant.setOwnerID(userID);
-            restaurant.setName(name);
-            restaurant.setAddress(address);
-            restaurant.setPhoneNumber(phoneNumber);
-            restaurant.setWorkingHours(workingHours);
-            restaurant.setLogoImage(logoImage);
-            restaurant.setApproved(false); // تایید نشده تا بررسی ادمین
+            restaurant.setName(json.getString("name"));
+            restaurant.setAddress(json.getString("address"));
+            restaurant.setPhone(json.getString("phone"));
+            restaurant.setLogoBase64(json.getString("logoBase64"));
+            restaurant.setTaxFee(json.getInt("tax_fee"));
+            restaurant.setAdditionalFee(json.getInt("additional_fee"));
 
             restaurantController.createRestaurant(restaurant);
 
             JSONObject responseJson = new JSONObject();
-            responseJson.put("message", "Restaurant submitted successfully. Waiting for admin approval.");
+            responseJson.put("message", "Restaurant created successfully");
 
             byte[] response = responseJson.toString().getBytes();
             exchange.sendResponseHeaders(200, response.length);
@@ -127,5 +92,37 @@ public class RestaurantHttpHandler implements HttpHandler {
             sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());
         }
     }
+
+
+    public void handleListRestaurants(HttpExchange exchange) throws IOException {
+        if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+            sendErrorResponse(exchange, 405, "Only GET requests are allowed.");
+            return;
+        }
+
+        try {
+            List<Restaurant> restaurants = restaurantController.getAllRestaurants();
+            JSONArray responseArray = new JSONArray();
+
+            for (Restaurant r : restaurants) {
+                JSONObject json = new JSONObject();
+                json.put("name", r.getName());
+                json.put("address", r.getAddress());
+                json.put("phone", r.getPhone());
+                json.put("logoBase64", r.getLogoBase64());
+                json.put("tax_fee", r.getTaxFee());
+                json.put("additional_fee", r.getAdditionalFee());
+                responseArray.put(json);
+            }
+
+            byte[] response = responseArray.toString().getBytes();
+            exchange.sendResponseHeaders(200, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.getResponseBody().close();
+        } catch (Exception e) {
+            sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());
+        }
+    }
+
 
 }
