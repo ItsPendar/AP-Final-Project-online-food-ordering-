@@ -25,7 +25,7 @@ public class Server {
         server.createContext("/auth/register", new NewUserHttpHandler());
         server.createContext("/auth/login", new LoginUserHttpHandler());
         server.createContext("/auth/profile", new ProfileHttpHandler());
-        server.createContext("/restaurant/list", new RestaurantHttpHandler());
+        server.createContext("/restaurants/mine", new RestaurantHttpHandler());
         server.createContext("/restaurant/create", new RestaurantHttpHandler()::handleCreateRestaurant);
         server.setExecutor(null);
         server.start();
