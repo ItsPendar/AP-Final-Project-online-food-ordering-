@@ -21,6 +21,9 @@ public class RestaurantController {
         restaurantDAO.createRestaurant(restaurant);
     }
 
+    public String getRestaurantIDByPhone(String phoneNumber) {
+        return restaurantDAO.getRestaurantIDByPhoneNumber(phoneNumber);
+    }
 
 
 

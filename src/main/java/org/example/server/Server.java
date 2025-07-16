@@ -21,25 +21,13 @@ public class Server {
         DatabaseConnectionManager.getConnection();
         // Set up the HTTP server
         HttpServer server = HttpServer.create(new InetSocketAddress("localhost",8080), 0);
-        server.createContext("/hello", new MyHandler());
         server.createContext("/auth/register", new NewUserHttpHandler());
         server.createContext("/auth/login", new LoginUserHttpHandler());
         server.createContext("/auth/profile", new ProfileHttpHandler());
         server.createContext("/restaurants/mine", new RestaurantHttpHandler());
-        server.createContext("/restaurant/create", new RestaurantHttpHandler()::handleCreateRestaurant);
+        server.createContext("/restaurants", new RestaurantHttpHandler()::handleCreateRestaurant);
         server.setExecutor(null);
         server.start();
-
         System.out.println("Server is running at: " + server.getAddress());
-    }
-    //a Handler class just for testing
-    static class MyHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String response = "Hello, World!";
-            exchange.sendResponseHeaders(200, response.length());
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.getResponseBody().close();
-        }
     }
 }

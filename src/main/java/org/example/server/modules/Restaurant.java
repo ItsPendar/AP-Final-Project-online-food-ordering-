@@ -7,9 +7,25 @@ public class Restaurant {
     private String logoBase64;
     private int taxFee;
     private int additionalFee;
+//    private String restaurantID;
+    private String ownerID;
 
     // Getters and Setters
+//    public String getRestaurantID() {
+//        return restaurantID;
+//    }
+//
+//    public void setRestaurantID(String restaurantID) {
+//        this.restaurantID = restaurantID;
+//    }
 
+    public String getOwnerID() {
+        return ownerID;
+    }
+
+    public void setOwnerID(String ownerID) {
+        this.ownerID = ownerID;
+    }
 
     public String getName() {
         return name;

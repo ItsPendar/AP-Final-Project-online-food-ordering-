@@ -65,9 +65,9 @@ public class RestaurantHttpHandler implements HttpHandler {
             sendErrorResponse(exchange, 405, "Only POST requests are allowed.");
             return;
         }
-
         try {
             String body = new String(exchange.getRequestBody().readAllBytes());
+            //System.out.println("new restaurant request body : " + body);
             JSONObject json = new JSONObject(body);
 
             Restaurant restaurant = new Restaurant();
@@ -77,14 +77,41 @@ public class RestaurantHttpHandler implements HttpHandler {
             restaurant.setLogoBase64(json.getString("logoBase64"));
             restaurant.setTaxFee(json.getInt("tax_fee"));
             restaurant.setAdditionalFee(json.getInt("additional_fee"));
+            System.out.println("restaurant name : " + restaurant.getName());
+            System.out.println("restaurant address : " + restaurant.getAddress());
+            System.out.println("restaurant phone : " + restaurant.getPhone());
+            System.out.println("restaurant tax fee : " + restaurant.getTaxFee());
+            System.out.println("restaurant additional fee : " + restaurant.getAdditionalFee());
 
+            String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+            if ( authHeader == null || !authHeader.startsWith("Bearer ")) {
+                sendErrorResponse(exchange, 401, "missing or invalid Authorization header");
+                return;
+            }
+            String token = authHeader.substring("Bearer ".length());
+            System.out.println("owner token is : " + token);
+            Claims claims = JWTHandler.verifyToken(token);
+            if (claims == null) {
+                sendErrorResponse(exchange, 401, "invalid or expired token");
+                return;
+            }
+            String ownerID = claims.getSubject();
+            System.out.println("restaurant owner ID is : " + ownerID);
+            restaurant.setOwnerID(ownerID);
             restaurantController.createRestaurant(restaurant);
-
             JSONObject responseJson = new JSONObject();
             responseJson.put("message", "Restaurant created successfully");
-
+            responseJson.put("name", restaurant.getName());
+            responseJson.put("address", restaurant.getAddress());
+            responseJson.put("phone", restaurant.getPhone());
+            //responseJson.put("logoBase64",restaurant.getPhone());
+            responseJson.put("tax_fee",restaurant.getTaxFee());
+            responseJson.put("additional_fee",restaurant.getAdditionalFee());
+            responseJson.put("id",restaurantController.getRestaurantIDByPhone(restaurant.getPhone()));
+            responseJson.put("ownerID",ownerID);
+            System.out.println("new restaurant response from server body : " + responseJson);
             byte[] response = responseJson.toString().getBytes();
-            exchange.sendResponseHeaders(200, response.length);
+            exchange.sendResponseHeaders(201, response.length);
             exchange.getResponseBody().write(response);
             exchange.getResponseBody().close();
 
