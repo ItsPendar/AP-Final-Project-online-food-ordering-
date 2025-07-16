@@ -69,14 +69,13 @@ public class RestaurantDAO {
                     "SELECT restaurant_id FROM restaurants WHERE phone = ?"
             );
             preparedStatement.setString(1, phoneNumber);
-
             var resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getString("restaurant_id"); // Return the userID
+                return resultSet.getString("restaurant_id");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null; // User not found
+        return null;
     }
 }

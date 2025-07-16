@@ -188,28 +188,28 @@ public class UserDAO {
     }
 
     public static void updateUser(User user,String newPhoneNumber, String oldPhoneNumber) throws SQLException {
-//        String sql = "UPDATE users SET name = ?,phone_number = ?, email = ?, address = ?, profileimage = ?, bank_name = ?, bank_account_number = ? WHERE phone_number = ?";
-//        PreparedStatement preparedStatement =
-//                connection.prepareStatement(sql);
-//        preparedStatement.setString(1, user.getName());
-//        preparedStatement.setString(2,newPhoneNumber);
-//        preparedStatement.setString(3,user.getEmail());
-//        preparedStatement.setString(4,user.getAddress());
-//        preparedStatement.setString(5,user.getProfileImage());
-//        preparedStatement.setString(6,user.getBankName());
-//        preparedStatement.setString(7,user.getBankAccountNumber());
-//        preparedStatement.setString(8,oldPhoneNumber);
-//        preparedStatement.executeUpdate();
-        User newUser = getUserByPhone(oldPhoneNumber);
-        newUser.setPhoneNumber(newPhoneNumber);
-        String deleteSql = "DELETE FROM users WHERE phone_number = ?";
-        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteSql)) {
-            deleteStmt.setString(1, oldPhoneNumber.trim());
-            int deleted = deleteStmt.executeUpdate();
-            System.out.println("Deleted rows: " + deleted);
-        }
-
-        saveUser(newUser);
+        String sql = "UPDATE users SET name = ?,phone_number = ?, email = ?, address = ?, profileimage = ?, bank_name = ?, bank_account_number = ? WHERE phone_number = ?";
+        PreparedStatement preparedStatement =
+                connection.prepareStatement(sql);
+        preparedStatement.setString(1, user.getName());
+        preparedStatement.setString(2,newPhoneNumber);
+        preparedStatement.setString(3,user.getEmail());
+        preparedStatement.setString(4,user.getAddress());
+        preparedStatement.setString(5,user.getProfileImage());
+        preparedStatement.setString(6,user.getBankName());
+        preparedStatement.setString(7,user.getBankAccountNumber());
+        preparedStatement.setString(8,oldPhoneNumber);
+        preparedStatement.executeUpdate();
+//        User newUser = getUserByPhone(oldPhoneNumber);
+//        newUser.setPhoneNumber(newPhoneNumber);
+//        String deleteSql = "DELETE FROM users WHERE phone_number = ?";
+//        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteSql)) {
+//            deleteStmt.setString(1, oldPhoneNumber.trim());
+//            int deleted = deleteStmt.executeUpdate();
+//            System.out.println("Deleted rows: " + deleted);
+//        }
+//
+//        saveUser(newUser);
 //        String insertSql = "INSERT INTO users (name, phone_number, email, address, profileimage, bank_name, bank_account_number, user_role, password) " +
 //                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 //        try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {

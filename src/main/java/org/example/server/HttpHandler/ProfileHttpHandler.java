@@ -21,9 +21,6 @@ public class ProfileHttpHandler implements HttpHandler {
         JSONObject responseJson = new JSONObject();
         String method = exchange.getRequestMethod();
         String jwt = exchange.getRequestHeaders().getFirst("Authorization");
-
-
-
         if (exchange.getRequestMethod().equalsIgnoreCase("GET")) {
             String query = exchange.getRequestURI().getQuery();
             Map<String, String> params = parseQueryParams(query);
@@ -55,7 +52,6 @@ public class ProfileHttpHandler implements HttpHandler {
 
             try {
                 UserController userController = new UserController();
-
                 if (user == null) {
                     sendErrorResponse(exchange, 404, "User not found");
                     return;
@@ -63,7 +59,7 @@ public class ProfileHttpHandler implements HttpHandler {
 
                 JSONObject userJson = new JSONObject();
                 userJson.put("id",UserController.getUserIDByPhoneNumber(user.getPhoneNumber()));
-                System.out.println("also the user ID here" + UserController.getUserIDByPhoneNumber(user.getPhoneNumber()));
+                //System.out.println("also the user ID here" + UserController.getUserIDByPhoneNumber(user.getPhoneNumber()));
                 userJson.put("name", user.getName());
                 userJson.put("phone", user.getPhoneNumber());
                 userJson.put("email", user.getEmail());
@@ -74,8 +70,7 @@ public class ProfileHttpHandler implements HttpHandler {
                         .put("bank_name", user.getBankName())
                         .put("account_number", user.getBankAccountNumber()));
 
-                System.out.println(userJson);
-
+                //System.out.println(userJson);
                 byte[] responseBytes = userJson.toString().getBytes();
                 exchange.sendResponseHeaders(200, responseBytes.length);
                 exchange.getResponseBody().write(responseBytes);

@@ -37,10 +37,9 @@ public class RestaurantHttpHandler implements HttpHandler {
                 JSONObject obj = new JSONObject();
                 obj.put("name", r.getName());
                 obj.put("address", r.getAddress());
-                obj.put("logobase64", r.getLogoBase64());
+                obj.put("logoBase64", r.getLogoBase64());
                 responseArray.put(obj);
             }
-
             byte[] responseBytes = responseArray.toString().getBytes();
             exchange.sendResponseHeaders(200, responseBytes.length);
             exchange.getResponseBody().write(responseBytes);
@@ -67,9 +66,7 @@ public class RestaurantHttpHandler implements HttpHandler {
         }
         try {
             String body = new String(exchange.getRequestBody().readAllBytes());
-            //System.out.println("new restaurant request body : " + body);
             JSONObject json = new JSONObject(body);
-
             Restaurant restaurant = new Restaurant();
             restaurant.setName(json.getString("name"));
             restaurant.setAddress(json.getString("address"));
@@ -77,11 +74,6 @@ public class RestaurantHttpHandler implements HttpHandler {
             restaurant.setLogoBase64(json.getString("logoBase64"));
             restaurant.setTaxFee(json.getInt("tax_fee"));
             restaurant.setAdditionalFee(json.getInt("additional_fee"));
-            System.out.println("restaurant name : " + restaurant.getName());
-            System.out.println("restaurant address : " + restaurant.getAddress());
-            System.out.println("restaurant phone : " + restaurant.getPhone());
-            System.out.println("restaurant tax fee : " + restaurant.getTaxFee());
-            System.out.println("restaurant additional fee : " + restaurant.getAdditionalFee());
 
             String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
             if ( authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -96,7 +88,6 @@ public class RestaurantHttpHandler implements HttpHandler {
                 return;
             }
             String ownerID = claims.getSubject();
-            System.out.println("restaurant owner ID is : " + ownerID);
             restaurant.setOwnerID(ownerID);
             restaurantController.createRestaurant(restaurant);
             JSONObject responseJson = new JSONObject();

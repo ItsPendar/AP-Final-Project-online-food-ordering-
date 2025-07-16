@@ -24,7 +24,7 @@ public class UserController {
 
     public static User getUserByPhone(String phone) throws SQLException {
         UserDAO userDAO = new UserDAO();
-        return userDAO.getUserByPhone(phone);
+        return UserDAO.getUserByPhone(phone);
     }
 
     public static User getUserByID(int ID) throws SQLException {
