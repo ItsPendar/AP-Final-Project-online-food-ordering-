@@ -30,7 +30,7 @@ public class UserDAO {
     public void createUserTable() throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
             "CREATE TABLE IF NOT EXISTS users (" +
-            "userID SERIAL PRIMARY KEY, " +
+            "userid SERIAL PRIMARY KEY, " +
             "name VARCHAR(255) NOT NULL, " +
             "phone_number VARCHAR(20) NOT NULL, " +
             "email VARCHAR(255) UNIQUE NOT NULL, " +
@@ -79,7 +79,7 @@ public class UserDAO {
 
     public static String getUserRoleByUserID(String userID) {
         try {
-            String query = "SELECT user_role FROM users WHERE userID = ?";
+            String query = "SELECT user_role FROM users WHERE userid = ?";
             PreparedStatement stmt = connection.prepareStatement(query);
             stmt.setInt(1, Integer.parseInt(userID));
             ResultSet rs = stmt.executeQuery();
@@ -111,14 +111,14 @@ public class UserDAO {
     public static User getUserByID(int userID) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT * FROM users WHERE userID = ?"
+                "SELECT * FROM users WHERE userid = ?"
             );
             preparedStatement.setInt(1, userID);
 
             var resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 User user = new User();
-                user.setUserID(resultSet.getString("userID"));
+                user.setUserID(resultSet.getString("userid"));
                 return getUser(resultSet, user);
             }
         } catch (SQLException e) {
@@ -160,13 +160,13 @@ public class UserDAO {
     public String getUserIDByPhoneNumber(String phoneNumber) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT userID FROM users WHERE phone_number = ?"
+                "SELECT userid FROM users WHERE phone_number = ?"
             );
             preparedStatement.setString(1, phoneNumber);
 
             var resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getString("userID"); // Return the userID
+                return resultSet.getString("userid"); // Return the userID
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -200,31 +200,5 @@ public class UserDAO {
         preparedStatement.setString(7,user.getBankAccountNumber());
         preparedStatement.setString(8,oldPhoneNumber);
         preparedStatement.executeUpdate();
-//        User newUser = getUserByPhone(oldPhoneNumber);
-//        newUser.setPhoneNumber(newPhoneNumber);
-//        String deleteSql = "DELETE FROM users WHERE phone_number = ?";
-//        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteSql)) {
-//            deleteStmt.setString(1, oldPhoneNumber.trim());
-//            int deleted = deleteStmt.executeUpdate();
-//            System.out.println("Deleted rows: " + deleted);
-//        }
-//
-//        saveUser(newUser);
-//        String insertSql = "INSERT INTO users (name, phone_number, email, address, profileimage, bank_name, bank_account_number, user_role, password) " +
-//                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-//        try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
-//            insertStmt.setString(1, newUser.getName());
-//            insertStmt.setString(2, newPhoneNumber.trim());
-//            insertStmt.setString(3, newUser.getEmail());
-//            insertStmt.setString(4, newUser.getAddress());
-//            insertStmt.setString(5, newUser.getProfileImage());
-//            insertStmt.setString(6, newUser.getBankName());
-//            insertStmt.setString(7, newUser.getBankAccountNumber());
-//            insertStmt.setString(8, user.getUserRole());
-//            insertStmt.setString(9, user.getPassword()); // Or some default if not stored in User
-//
-//            int inserted = insertStmt.executeUpdate();
-//            System.out.println("Inserted rows: " + inserted);
-//        }
     }
 }

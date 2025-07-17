@@ -7,10 +7,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class RestaurantController {
-    private final RestaurantDAO restaurantDAO;
+    private static RestaurantDAO restaurantDAO = null;
 
     public RestaurantController() throws SQLException {
-        this.restaurantDAO = new RestaurantDAO();
+        restaurantDAO = new RestaurantDAO();
     }
 
     public List<Restaurant> getAllRestaurants() throws SQLException {
@@ -21,12 +21,20 @@ public class RestaurantController {
         restaurantDAO.createRestaurant(restaurant);
     }
 
-    public String getRestaurantIDByPhone(String phoneNumber) {
+    public static String getRestaurantIDByPhone(String phoneNumber) {
         return restaurantDAO.getRestaurantIDByPhoneNumber(phoneNumber);
     }
 
+    public void updateRestaurant(Restaurant restaurant, int restaurantID) throws SQLException {
+        RestaurantDAO.updateRestaurant(restaurant,restaurantID);
+    }
 
-
+    public static int getOwnerIDFromRestaurantID(int restaurantID) {
+        return RestaurantDAO.getOwnerIDFromRestaurantID(restaurantID);
+    }
+    public static Restaurant getRestaurantByID(int restaurantID) {
+        return RestaurantDAO.getRestaurantByID(restaurantID);
+    }
     // بعداً:
     // public void addRestaurant(...)
     // public Restaurant getRestaurantById(...)

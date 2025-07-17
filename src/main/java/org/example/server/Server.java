@@ -1,7 +1,5 @@
 package org.example.server;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.example.server.HttpHandler.*;
 import org.example.server.dao.DatabaseConnectionManager;
@@ -26,6 +24,9 @@ public class Server {
         server.createContext("/auth/profile", new ProfileHttpHandler());
         server.createContext("/restaurants/mine", new RestaurantHttpHandler());
         server.createContext("/restaurants", new RestaurantHttpHandler()::handleCreateRestaurant);
+        server.createContext("/restaurants/item", new FoodItemHandler());
+        server.createContext("/restaurants/menu", new MenuHandler());
+        server.createContext("/vendors", new VendorHttpHandler());
         server.setExecutor(null);
         server.start();
         System.out.println("Server is running at: " + server.getAddress());

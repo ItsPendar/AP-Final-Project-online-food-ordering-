@@ -1,13 +1,22 @@
 package org.example.server.dao;
 
 import org.example.server.modules.Restaurant;
+import org.example.server.modules.User;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RestaurantDAO {
-    private final Connection connection = DatabaseConnectionManager.getConnection();
+    private static final Connection connection;
+
+    static {
+        try {
+            connection = DatabaseConnectionManager.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public RestaurantDAO() throws SQLException {
         this.createRestaurantTable();
@@ -22,9 +31,10 @@ public class RestaurantDAO {
                         "phone VARCHAR(20) NOT NULL, " +
                         "address TEXT, " +
                         "logo_base64 TEXT, " +
-                        "tax_fee INTEGER DEFAULT 9, " +
-                        "additional_fee INTEGER DEFAULT 2, " +
-                        "owner_id VARCHAR(20)" +
+                        "tax_fee REAL, " +
+                        "additional_fee REAL, " +
+                        "owner_id INTEGER, " +
+                        "FOREIGN KEY (owner_id) REFERENCES users(userid)" +
                         ")"
         );
         preparedStatement.executeUpdate();
@@ -58,9 +68,9 @@ public class RestaurantDAO {
         stmt.setString(2, restaurant.getAddress());
         stmt.setString(3, restaurant.getPhone());
         stmt.setString(4, restaurant.getLogoBase64());
-        stmt.setInt(5, restaurant.getTaxFee());
-        stmt.setInt(6, restaurant.getAdditionalFee());
-        stmt.setString(7, restaurant.getOwnerID());
+        stmt.setDouble(5, restaurant.getTaxFee());
+        stmt.setDouble(6, restaurant.getAdditionalFee());
+        stmt.setInt(7, restaurant.getOwnerID());
         stmt.executeUpdate();
     }
     public String getRestaurantIDByPhoneNumber(String phoneNumber) {
@@ -77,5 +87,63 @@ public class RestaurantDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void updateRestaurant(Restaurant restaurant, int restaurantID) throws SQLException {
+        String sql = "UPDATE users SET name = ?,phone_number = ?, address = ?, logo_base64 = ?, tax_fee = ?, additional_fee = ? WHERE restaurant_id = ?";
+        PreparedStatement preparedStatement =
+                connection.prepareStatement(sql);
+        preparedStatement.setString(1, restaurant.getName());
+        preparedStatement.setString(2,restaurant.getPhone());
+        preparedStatement.setString(3,restaurant.getAddress());
+        preparedStatement.setString(4,restaurant.getLogoBase64());
+        preparedStatement.setDouble(5,restaurant.getTaxFee());
+        preparedStatement.setDouble(6,restaurant.getAdditionalFee());
+        preparedStatement.setInt(7,restaurantID);
+        preparedStatement.executeUpdate();
+    }
+    public static int getOwnerIDFromRestaurantID(int restaurantID) {
+        try {
+            String query = "SELECT owner_id FROM restaurants WHERE restaurant_id = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setInt(1, restaurantID);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Integer.parseInt(rs.getString("owner_id"));
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public static Restaurant getRestaurantByID(int restaurantID) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM restaurants WHERE restaurant_id = ?"
+            );
+            preparedStatement.setInt(1, restaurantID);
+
+            var resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                Restaurant restaurant = new Restaurant();
+                restaurant.setRestaurantID(resultSet.getInt("restaurant_id"));
+                return getrestaurant(resultSet, restaurant);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // User not found
+    }
+
+    private static Restaurant getrestaurant(ResultSet resultSet, Restaurant restaurant) throws SQLException {
+        restaurant.setName(resultSet.getString("name"));
+        restaurant.setPhone(resultSet.getString("phone"));
+        restaurant.setAddress(resultSet.getString("address"));
+        restaurant.setTaxFee(resultSet.getDouble("tax_fee"));
+        restaurant.setAdditionalFee(resultSet.getDouble("additional_fee"));
+        restaurant.setLogoBase64(resultSet.getString("logoBase64"));
+        return restaurant;
     }
 }

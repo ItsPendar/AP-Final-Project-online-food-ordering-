@@ -24,11 +24,11 @@ public class RestaurantHttpHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-            sendErrorResponse(exchange, 405, "Method Not Allowed. Only GET requests are allowed.");
+        String requestMethod = exchange.getRequestMethod();
+        if (!requestMethod.equalsIgnoreCase("GET")) { // create a new restaurant
+            sendErrorResponse(exchange, 405, "Method Not Allowed.");
             return;
         }
-
         try {
             List<Restaurant> restaurants = restaurantController.getAllRestaurants();
 
@@ -60,55 +60,85 @@ public class RestaurantHttpHandler implements HttpHandler {
     }
 
     public void handleCreateRestaurant(HttpExchange exchange) throws IOException {
-        if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-            sendErrorResponse(exchange, 405, "Only POST requests are allowed.");
+        String requestMethod = exchange.getRequestMethod();
+        if (requestMethod.equalsIgnoreCase("POST")) {//adding a new restaurant
+            try {
+                String body = new String(exchange.getRequestBody().readAllBytes());
+                JSONObject json = new JSONObject(body);
+                Restaurant restaurant = new Restaurant();
+                restaurant.setName(json.getString("name"));
+                restaurant.setAddress(json.getString("address"));
+                restaurant.setPhone(json.getString("phone"));
+                restaurant.setLogoBase64(json.getString("logoBase64"));
+                restaurant.setTaxFee(json.getDouble("tax_fee"));
+                restaurant.setAdditionalFee(json.getDouble("additional_fee"));
+                int ownerID = JWTHandler.getUserIDByToken(exchange);
+                restaurant.setOwnerID(ownerID);
+                restaurantController.createRestaurant(restaurant);
+                JSONObject responseJson = new JSONObject();
+                responseJson.put("message", "Restaurant created successfully");
+                responseJson.put("name", restaurant.getName());
+                responseJson.put("address", restaurant.getAddress());
+                responseJson.put("phone", restaurant.getPhone());
+                responseJson.put("logoBase64",restaurant.getPhone());
+                responseJson.put("tax_fee",restaurant.getTaxFee());
+                responseJson.put("additional_fee",restaurant.getAdditionalFee());
+                responseJson.put("id", RestaurantController.getRestaurantIDByPhone(restaurant.getPhone()));
+                responseJson.put("ownerID",ownerID);
+                //System.out.println("new restaurant response from server body : " + responseJson);
+                byte[] response = responseJson.toString().getBytes();
+                exchange.sendResponseHeaders(201, response.length);
+                exchange.getResponseBody().write(response);
+                exchange.getResponseBody().close();
+
+            } catch (Exception e) {
+                sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());
+            }
+        }
+        else if(requestMethod.equalsIgnoreCase("PUT")) { //update restaurant info
+            String path = exchange.getRequestURI().getPath();
+            String[] parts = path.split("/");
+            if (parts.length < 3) {
+                sendErrorResponse(exchange, 400, "Missing restaurant ID in path.");
+                return;
+            }
+            String idStr = parts[2];
+            int restaurantID;
+            try {
+                restaurantID = Integer.parseInt(idStr);
+
+            } catch (NumberFormatException e) {
+                sendErrorResponse(exchange,400,"Invalid restaurant ID");
+                return;
+            }
+            int loggedInUserID = JWTHandler.getUserIDByToken(exchange);
+            int restaurantOwnerID = restaurantController.getOwnerIDFromRestaurantID(restaurantID);
+            if(!(loggedInUserID == restaurantOwnerID)) {
+                sendErrorResponse(exchange, 401, "Unauthorized request"); //user doesn't own this restaurant
+            }
+            else{
+                String body = new String(exchange.getRequestBody().readAllBytes());
+                JSONObject json = new JSONObject(body);
+                Restaurant restaurant = new Restaurant();
+                restaurant.setName(json.getString("name"));
+                restaurant.setAddress(json.getString("address"));
+                restaurant.setPhone(json.getString("phone"));
+                restaurant.setLogoBase64(json.getString("logoBase64"));
+                restaurant.setTaxFee(json.getDouble("tax_fee"));
+                restaurant.setAdditionalFee(json.getDouble("additional_fee"));
+                try {
+                    restaurantController.updateRestaurant(restaurant, restaurantID);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        }
+        else {
+            sendErrorResponse(exchange, 405, "Request method not allowed");
             return;
         }
-        try {
-            String body = new String(exchange.getRequestBody().readAllBytes());
-            JSONObject json = new JSONObject(body);
-            Restaurant restaurant = new Restaurant();
-            restaurant.setName(json.getString("name"));
-            restaurant.setAddress(json.getString("address"));
-            restaurant.setPhone(json.getString("phone"));
-            restaurant.setLogoBase64(json.getString("logoBase64"));
-            restaurant.setTaxFee(json.getInt("tax_fee"));
-            restaurant.setAdditionalFee(json.getInt("additional_fee"));
 
-            String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
-            if ( authHeader == null || !authHeader.startsWith("Bearer ")) {
-                sendErrorResponse(exchange, 401, "missing or invalid Authorization header");
-                return;
-            }
-            String token = authHeader.substring("Bearer ".length());
-            System.out.println("owner token is : " + token);
-            Claims claims = JWTHandler.verifyToken(token);
-            if (claims == null) {
-                sendErrorResponse(exchange, 401, "invalid or expired token");
-                return;
-            }
-            String ownerID = claims.getSubject();
-            restaurant.setOwnerID(ownerID);
-            restaurantController.createRestaurant(restaurant);
-            JSONObject responseJson = new JSONObject();
-            responseJson.put("message", "Restaurant created successfully");
-            responseJson.put("name", restaurant.getName());
-            responseJson.put("address", restaurant.getAddress());
-            responseJson.put("phone", restaurant.getPhone());
-            //responseJson.put("logoBase64",restaurant.getPhone());
-            responseJson.put("tax_fee",restaurant.getTaxFee());
-            responseJson.put("additional_fee",restaurant.getAdditionalFee());
-            responseJson.put("id",restaurantController.getRestaurantIDByPhone(restaurant.getPhone()));
-            responseJson.put("ownerID",ownerID);
-            System.out.println("new restaurant response from server body : " + responseJson);
-            byte[] response = responseJson.toString().getBytes();
-            exchange.sendResponseHeaders(201, response.length);
-            exchange.getResponseBody().write(response);
-            exchange.getResponseBody().close();
-
-        } catch (Exception e) {
-            sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());
-        }
     }
 
 
