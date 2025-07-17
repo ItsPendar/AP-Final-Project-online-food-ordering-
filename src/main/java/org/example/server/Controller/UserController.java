@@ -58,4 +58,8 @@ public class UserController {
         return userDAO.getUserIDByPhoneNumber(phoneNumber);
     }
 
+    public static String getUserRoleByID(int userID) throws SQLException {
+        return getUserByID(userID).getUserRole();
+    }
+
 }

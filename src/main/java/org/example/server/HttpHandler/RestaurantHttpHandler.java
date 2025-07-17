@@ -3,6 +3,7 @@ package org.example.server.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.server.Controller.RestaurantController;
+import org.example.server.Controller.UserController;
 import org.example.server.dao.UserDAO;
 import org.example.server.modules.Restaurant;
 import org.json.JSONArray;
@@ -30,21 +31,41 @@ public class RestaurantHttpHandler implements HttpHandler {
             return;
         }
         try {
-            List<Restaurant> restaurants = restaurantController.getAllRestaurants();
-
-            JSONArray responseArray = new JSONArray();
-            for (Restaurant r : restaurants) {
-                JSONObject obj = new JSONObject();
-                obj.put("name", r.getName());
-                obj.put("address", r.getAddress());
-                obj.put("logoBase64", r.getLogoBase64());
-                responseArray.put(obj);
+            int userID = JWTHandler.getUserIDByToken(exchange);
+            String userRole = UserController.getUserRoleByID(userID);
+            if(userRole.equals("buyer")) {
+                List<Restaurant> restaurants = restaurantController.getAllRestaurants();
+                JSONArray responseArray = new JSONArray();
+                for (Restaurant r : restaurants) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("name", r.getName());
+                    obj.put("address", r.getAddress());
+                    obj.put("logoBase64", r.getLogoBase64());
+                    responseArray.put(obj);
+                }
+                byte[] responseBytes = responseArray.toString().getBytes();
+                exchange.sendResponseHeaders(200, responseBytes.length);
+                exchange.getResponseBody().write(responseBytes);
+                exchange.getResponseBody().close();
             }
-            byte[] responseBytes = responseArray.toString().getBytes();
-            exchange.sendResponseHeaders(200, responseBytes.length);
-            exchange.getResponseBody().write(responseBytes);
-            exchange.getResponseBody().close();
-
+            else if(userRole.equals("seller")) {
+                List<Restaurant> restaurants = restaurantController.getAnOwnersRestaurants(userID);
+                JSONArray responseArray = new JSONArray();
+                for (Restaurant r : restaurants) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("name", r.getName());
+                    obj.put("address", r.getAddress());
+                    obj.put("logoBase64", r.getLogoBase64());
+                    responseArray.put(obj);
+                }
+                byte[] responseBytes = responseArray.toString().getBytes();
+                exchange.sendResponseHeaders(200, responseBytes.length);
+                exchange.getResponseBody().write(responseBytes);
+                exchange.getResponseBody().close();
+            }
+            else{
+                sendErrorResponse(exchange,400, "user role not identified" ); //not sure of the status code
+            }
         } catch (SQLException e) {
             sendErrorResponse(exchange, 500, "Internal Server Error: " + e.getMessage());
         }

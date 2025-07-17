@@ -59,6 +59,24 @@ public class RestaurantDAO {
 
         return restaurants;
     }
+    public List<Restaurant> getAnOwnersRestaurants(int ownerID) throws SQLException {
+        List<Restaurant> restaurants = new ArrayList<>();
+        String query = "SELECT * FROM restaurants WHERE owner_id = ?";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setInt(1, ownerID);
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            Restaurant restaurant = new Restaurant();
+            restaurant.setName(rs.getString("name"));
+            restaurant.setAddress(rs.getString("address"));
+            restaurant.setPhone(rs.getString("phone"));
+            restaurant.setLogoBase64(rs.getString("logo_base64"));
+            restaurant.setTaxFee(rs.getInt("tax_fee"));
+            restaurant.setAdditionalFee(rs.getInt("additional_fee"));
+            restaurants.add(restaurant);
+        }
+        return restaurants;
+    }
 
 
     public void createRestaurant(Restaurant restaurant) throws SQLException {
