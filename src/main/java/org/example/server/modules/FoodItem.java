@@ -7,7 +7,7 @@ import java.util.List;
 public class FoodItem {
     private int foodItemID;
     private int restaurantID;
-    private String menuTitle = null;
+    private List<String> menuTitle;
     private String name;
     private String description;
     private double price;
@@ -19,7 +19,7 @@ public class FoodItem {
 
     }
 
-    public FoodItem(int foodItemID, int restaurantID, String menuTitle, String name, String description, double price, int supply, List<String> keyword, String imageBase64) {
+    public FoodItem(int foodItemID, int restaurantID, List<String> menuTitle, String name, String description, double price, int supply, List<String> keyword, String imageBase64) {
         this.foodItemID = foodItemID;
         this.restaurantID = restaurantID;
         this.menuTitle = menuTitle;
@@ -47,11 +47,11 @@ public class FoodItem {
         this.restaurantID = restaurantID;
     }
 
-    public String getMenuTitle() {
+    public List<String> getMenuTitle() {
         return menuTitle;
     }
 
-    public void setMenuTitle(String menuTitle) {
+    public void setMenuTitle(List<String> menuTitle) {
         this.menuTitle = menuTitle;
     }
 

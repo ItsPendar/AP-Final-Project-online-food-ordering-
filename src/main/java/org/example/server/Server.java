@@ -27,6 +27,7 @@ public class Server {
         server.createContext("/restaurants/item", new FoodItemHandler());
         server.createContext("/restaurants/menu", new MenuHandler());
         server.createContext("/vendors", new VendorHttpHandler());
+
         server.setExecutor(null);
         server.start();
         System.out.println("Server is running at: " + server.getAddress());

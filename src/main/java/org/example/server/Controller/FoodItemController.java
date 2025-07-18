@@ -20,8 +20,8 @@ public class FoodItemController {
     public static void updateFoodItem(int itemID, FoodItem newFoodItem) throws SQLException {
         FoodItemDAO.updateFoodItem(itemID,newFoodItem);
     }
-    public static void deleteItemFromMenu(int foodItemID) throws SQLException {
-        FoodItemDAO.deleteItemFromMenu(foodItemID);
+    public static void deleteItemFromMenu(int foodItemID, String menuTitle) throws SQLException {
+        FoodItemDAO.deleteItemFromMenu(foodItemID, menuTitle);
     }
     public static ArrayNode getItemsInAMenu(String menuTitle) throws SQLException {
         return FoodItemDAO.getItemsInAMenu(menuTitle);

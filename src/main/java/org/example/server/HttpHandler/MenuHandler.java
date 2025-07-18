@@ -82,7 +82,7 @@ public class MenuHandler implements HttpHandler {
                     String menuTitle = parts[4];
                     int itemID = Integer.parseInt(parts[5]);
                     try {
-                        FoodItemController.deleteItemFromMenu(itemID);
+                        FoodItemController.deleteItemFromMenu(itemID, menuTitle);
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
