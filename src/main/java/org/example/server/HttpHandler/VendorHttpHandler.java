@@ -18,6 +18,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public class VendorHttpHandler implements HttpHandler {
+    private final FoodItemController foodItemController;
+    public VendorHttpHandler() throws SQLException {
+        this.foodItemController = new FoodItemController();
+    }
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
@@ -45,7 +49,7 @@ public class VendorHttpHandler implements HttpHandler {
             ArrayNode arrayNode = mapper.createArrayNode();
             try {
                 for (String title : MenuController.getMenuTitlesOfARestaurant(vendorID)) {
-                    menuItemsArrayNode = FoodItemController.getItemsInAMenu(title);
+                    menuItemsArrayNode = foodItemController.getItemsInAMenu(title);
                     response.set(title, menuItemsArrayNode);
                     arrayNode.add(title);
                 }

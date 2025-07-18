@@ -17,9 +17,9 @@ public class MenuController {
         return menuDAO.addMenu(menu);
     }
     public static void deleteMenu(String menuTitle, int restaurantID) throws SQLException {
-        MenuDAO.deleteMenuByTitleAndRestaurantID(menuTitle,restaurantID);
+        menuDAO.deleteMenuByTitleAndRestaurantID(menuTitle,restaurantID);
     }
     public static List<String> getMenuTitlesOfARestaurant(int restaurantID) throws SQLException {
-        return MenuDAO.getMenuTitlesOfARestaurant(restaurantID);
+        return menuDAO.getMenuTitlesOfARestaurant(restaurantID);
     }
 }

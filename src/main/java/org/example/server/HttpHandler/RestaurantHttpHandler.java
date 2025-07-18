@@ -141,10 +141,11 @@ public class RestaurantHttpHandler implements HttpHandler {
             }
         }
         else if (path.matches("/restaurants/\\d+/item") && requestMethod.equals("POST")) {
+            System.out.println("add item request detected");
             //TODO : add item to restaurant
             int userID = JWTHandler.getUserIDByToken(exchange);
-            String[] parts = path.split("/");
-            int restaurantID = Integer.parseInt(parts[2]);
+            int restaurantID = Integer.parseInt(exchange.getRequestURI().getPath().replace("/restaurants/", "").replace("/item", "").split("/")[0]);
+            System.out.println("restaurantId is : " + restaurantID);
             int restaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
             if(!(userID  == restaurantOwnerID)) {
                 sendErrorResponse(exchange, 401, "Unauthorized request"); //user doesn't own this restaurant
@@ -152,6 +153,7 @@ public class RestaurantHttpHandler implements HttpHandler {
             }
             //checking the user owns the restaurant done
             String body = new String(exchange.getRequestBody().readAllBytes());
+            System.out.println("body of the request is : " + "sample request body");
             JSONObject json = new JSONObject(body);
             FoodItem newItem = new FoodItem();
             newItem.setName(json.getString("name"));
@@ -167,7 +169,24 @@ public class RestaurantHttpHandler implements HttpHandler {
             newItem.setImageBase64(json.getString("imageBase64"));
             newItem.setRestaurantID(restaurantID);
             try {
-                FoodItemController.addFoodItem(newItem);//food item added to the database
+                int itemID = foodItemController.addFoodItem(newItem);
+                System.out.println("item ID is : " + itemID);
+                if(itemID > 0){
+                    JSONObject responseBody = new JSONObject();
+                    responseBody.put("name", newItem.getName());
+                    responseBody.put("description", newItem.getDescription());
+                    responseBody.put("price", newItem.getPrice());
+                    responseBody.put("supply", newItem.getSupply());
+                    responseBody.put("keywords", keywordsJson);
+                    responseBody.put("vendor_id", restaurantID);
+                    responseBody.put("id", itemID);
+                    responseBody.put("imageBase64", newItem.getImageBase64());
+                    System.out.println("response body is : " + "sampleResponseBody");
+                    sendResponse(exchange,200,responseBody);
+                }
+                else{
+                    sendErrorResponse(exchange,500,"Internal server error!");
+                }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -194,7 +213,7 @@ public class RestaurantHttpHandler implements HttpHandler {
                 }
                 newFoodItem.setKeyword(keywords);
                 try {
-                    FoodItemController.updateFoodItem(itemID,newFoodItem);
+                    foodItemController.updateFoodItem(itemID,newFoodItem);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -213,7 +232,7 @@ public class RestaurantHttpHandler implements HttpHandler {
             int itemID = Integer.parseInt(parts[4]);
             if(JWTHandler.doesUserOwnRestaurant(exchange,restaurantID)) {
                 try {
-                    FoodItemController.deleteFoodItemFromRestaurant(itemID,restaurantID);
+                    foodItemController.deleteFoodItemFromRestaurant(itemID,restaurantID);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -232,19 +251,16 @@ public class RestaurantHttpHandler implements HttpHandler {
             int restaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
             System.out.println("ownerId is : " + restaurantOwnerID);
             if(!(userID  == restaurantOwnerID)) {
-                String response = "Unauthorized request";
-                exchange.sendResponseHeaders(401, response.length());
-                exchange.getResponseBody().write(response.getBytes());
-                exchange.getResponseBody().close();//user doesn't own this restaurant
+                sendErrorResponse(exchange,401,"Unauthorized request");//user doesn't own this restaurant
             }
             else{
                 String body = new String(exchange.getRequestBody().readAllBytes());
-                System.out.println("request body is : " + body);
+                //System.out.println("request body is : " + body);
                 JSONObject json = new JSONObject(body);
                 Menu newMenu = new Menu();
                 newMenu.setMenuTitle(json.getString("title"));
                 newMenu.setRestaurantID(restaurantID);
-                System.out.println("title of the menu is : " + newMenu.getMenuTitle());
+                //System.out.println("title of the menu is : " + newMenu.getMenuTitle());
                 try {
                     if(menuController.addMenu(newMenu)) {
                         JSONObject responseBody = new JSONObject();
@@ -258,7 +274,7 @@ public class RestaurantHttpHandler implements HttpHandler {
                     throw new RuntimeException(e);
                 }
             }
-        }
+        }//add a new menu
         else if (path.matches("/restaurants/\\d+/menu/[^/]+") && requestMethod.equals("DELETE")) {
             int restaurantID = extractId(path, "/restaurants/", "/menu/");
             String menuTitle = path.substring(path.lastIndexOf("/") + 1);
@@ -288,7 +304,7 @@ public class RestaurantHttpHandler implements HttpHandler {
                 JSONObject json = new JSONObject(body);
                 int itemID = json.getInt("item_id");
                 try {
-                    FoodItemController.addItemToMenu(itemID, menuTitle);
+                    foodItemController.addItemToMenu(itemID, menuTitle);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -307,7 +323,7 @@ public class RestaurantHttpHandler implements HttpHandler {
             int itemId = Integer.parseInt(parts[5]);
             //TODO : remove item from menu
             try {
-                FoodItemController.deleteItemFromMenu(itemID, menuTitle);
+                foodItemController.deleteItemFromMenu(itemID, menuTitle);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }

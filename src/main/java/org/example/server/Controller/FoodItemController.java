@@ -14,22 +14,22 @@ public class FoodItemController {
         foodItemDAO = new FoodItemDAO();
     }
 
-    public static void addFoodItem(FoodItem foodItem) throws SQLException {
-        FoodItemDAO.addFoodItem(foodItem);
+    public int addFoodItem(FoodItem foodItem) throws SQLException {
+        return foodItemDAO.addFoodItem(foodItem);
     }
-    public static void addItemToMenu(int itemID, String menuTitle) throws SQLException {
-        FoodItemDAO.addItemToMenu(itemID, menuTitle);
+    public void addItemToMenu(int itemID, String menuTitle) throws SQLException {
+        foodItemDAO.addItemToMenu(itemID, menuTitle);
     }
-    public static void deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
-        FoodItemDAO.deleteFoodItemFromRestaurant(foodItemID,restaurantID);
+    public void deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
+        foodItemDAO.deleteFoodItemFromRestaurant(foodItemID,restaurantID);
     }
-    public static void updateFoodItem(int itemID, FoodItem newFoodItem) throws SQLException {
-        FoodItemDAO.updateFoodItem(itemID,newFoodItem);
+    public void updateFoodItem(int itemID, FoodItem newFoodItem) throws SQLException {
+        foodItemDAO.updateFoodItem(itemID,newFoodItem);
     }
-    public static void deleteItemFromMenu(int foodItemID, String menuTitle) throws SQLException {
-        FoodItemDAO.deleteItemFromMenu(foodItemID, menuTitle);
+    public void deleteItemFromMenu(int foodItemID, String menuTitle) throws SQLException {
+        foodItemDAO.deleteItemFromMenu(foodItemID, menuTitle);
     }
-    public static ArrayNode getItemsInAMenu(String menuTitle) throws SQLException {
-        return FoodItemDAO.getItemsInAMenu(menuTitle);
+    public  ArrayNode getItemsInAMenu(String menuTitle) throws SQLException {
+        return foodItemDAO.getItemsInAMenu(menuTitle);
     }
 }

@@ -42,22 +42,34 @@ public class FoodItemDAO {
         );
         preparedStatement.executeUpdate();
     }
-    public static void addFoodItem(FoodItem foodItem) throws SQLException {
-        String query = "INSERT INTO foods (name, description, price, supply, keywords, image_base64, restaurant_id, menu_title) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        PreparedStatement stmt = connection.prepareStatement(query);
+    public int addFoodItem(FoodItem foodItem) throws SQLException {
+        String query = "INSERT INTO foods (name, description, price, supply, keywords, image_base64, restaurant_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+        System.out.println("adding food item is happening in DAO");
         stmt.setString(1, foodItem.getName());
+        System.out.println("name : " + foodItem.getName());
         stmt.setString(2, foodItem.getDescription());
+        System.out.println("description : " + foodItem.getDescription());
         stmt.setDouble(3, foodItem.getPrice());
+        System.out.println("price : " + foodItem.getPrice());
         stmt.setInt(4, foodItem.getSupply());
+        System.out.println("supply" + foodItem.getSupply());
         Array keyWordArray = connection.createArrayOf("text", foodItem.getKeyword().toArray(new String[0]));
         stmt.setArray(5, keyWordArray);
-        stmt.setString(6, foodItem.getImageBase64());
+        String[] keywordValues = foodItem.getKeyword().toArray(new String[0]);
+        System.out.println("keywords : " + String.join(" , ", keywordValues));
+        stmt.setString(6, foodItem.getImageBase64());;
         stmt.setInt(7, foodItem.getRestaurantID());
-        Array menuArray = connection.createArrayOf("text", foodItem.getMenuTitle().toArray(new String[0]));
-        stmt.setArray(8, menuArray);
+        System.out.println("restaurant ID : " + foodItem.getRestaurantID());
         stmt.executeUpdate();
+        ResultSet generatedKeys = stmt.getGeneratedKeys();
+        if (generatedKeys.next()) {
+            return generatedKeys.getInt(1); // return the newly generated food_id
+        } else {
+            throw new SQLException("Creating food item failed, no ID obtained.");
+        }
     }
-    public static void addItemToMenu(int itemID, String menuTitle) throws SQLException {
+    public void addItemToMenu(int itemID, String menuTitle) throws SQLException {
         String sql = "UPDATE foods SET menu_title = ? WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
@@ -68,14 +80,14 @@ public class FoodItemDAO {
         preparedStatement.setInt(2,itemID);
         preparedStatement.executeUpdate();
     }
-    public static void deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
+    public void deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
         String sql = "DELETE * from foods WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
         preparedStatement.setInt(1, foodItemID);
         preparedStatement.executeUpdate();
     }
-    public static void updateFoodItem(int itemID, FoodItem foodItem) throws SQLException {
+    public void updateFoodItem(int itemID, FoodItem foodItem) throws SQLException {
         String sql = "UPDATE foods SET name = ?,imageBase64 = ?, description = ?, keywords = ?, price = ?, supply = ?, menu_title = ? WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
@@ -91,7 +103,7 @@ public class FoodItemDAO {
         preparedStatement.setInt(8, itemID);
         preparedStatement.executeUpdate();
     }
-    public static void deleteItemFromMenu(int itemID, String menuTitle) throws SQLException {
+    public void deleteItemFromMenu(int itemID, String menuTitle) throws SQLException {
         String sql = "UPDATE foods SET menu_title = ? WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
@@ -101,7 +113,7 @@ public class FoodItemDAO {
         preparedStatement.setInt(2,itemID);
         preparedStatement.executeUpdate();
     }
-    public static List<String> getMenusOfAnItem(int itemID) {
+    public List<String> getMenusOfAnItem(int itemID) {
         String listOfMenus = null;
         try {
             String query = "SELECT menu_title FROM foods WHERE food_id = ?";
@@ -120,7 +132,7 @@ public class FoodItemDAO {
         List<String> menus = new ArrayList<>(Arrays.asList(parts));
         return menus;
     }
-    public static ArrayNode getItemsInAMenu(String menuTitle) throws SQLException {
+    public ArrayNode getItemsInAMenu(String menuTitle) throws SQLException {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode foodItems = mapper.createArrayNode();
 

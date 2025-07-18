@@ -46,7 +46,7 @@ public class MenuDAO {
         stmt.executeUpdate();
         return true;
     }
-    public static int getMenuIDByTitleAndRestaurantID(String menuTitle, int restaurantID) {
+    public int getMenuIDByTitleAndRestaurantID(String menuTitle, int restaurantID) {
         try {
             String query = "SELECT menu_id FROM menus WHERE (title, restaurant_id) = (?, ?)";
             PreparedStatement stmt = connection.prepareStatement(query);
@@ -63,7 +63,7 @@ public class MenuDAO {
         return -1;
     }
 
-    public static void deleteMenuByTitleAndRestaurantID(String title, int restaurantID) throws SQLException {
+    public void deleteMenuByTitleAndRestaurantID(String title, int restaurantID) throws SQLException {
         int menuID = getMenuIDByTitleAndRestaurantID(title, restaurantID);
         String sql = "DELETE * from menus WHERE menu_id = ?";
         PreparedStatement preparedStatement =
@@ -71,7 +71,7 @@ public class MenuDAO {
         preparedStatement.setInt(1, menuID);
         preparedStatement.executeUpdate();
     }
-    public static List<String> getMenuTitlesOfARestaurant(int restaurantID) throws SQLException {
+    public List<String> getMenuTitlesOfARestaurant(int restaurantID) throws SQLException {
         String query = "SELECT title FROM menus WHERE restaurant_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, restaurantID);
