@@ -37,10 +37,7 @@ public class FoodItemDAO {
                         "keywords TEXT[], " +
                         "image_base64 TEXT, " +
                         "menu_title TEXT[], " +
-                        "FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id), " +
-                        //"FOREIGN KEY (menu_title) REFERENCES menus(title)" +
-                        //I commented the line above because the user should be able to add food item to
-                        //a restaurant even when there is no menu added to the restaurant
+                        "FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id)" +
                         ")"
         );
         preparedStatement.executeUpdate();

@@ -22,10 +22,7 @@ public class Server {
         server.createContext("/auth/register", new NewUserHttpHandler());
         server.createContext("/auth/login", new LoginUserHttpHandler());
         server.createContext("/auth/profile", new ProfileHttpHandler());
-        server.createContext("/restaurants/mine", new RestaurantHttpHandler());
-        server.createContext("/restaurants", new RestaurantHttpHandler()::handleCreateRestaurant);
-        server.createContext("/restaurants/item", new FoodItemHandler());
-        server.createContext("/restaurants/menu", new MenuHandler());
+        server.createContext("/restaurants", new RestaurantHttpHandler());
         server.createContext("/vendors", new VendorHttpHandler());
 
         server.setExecutor(null);

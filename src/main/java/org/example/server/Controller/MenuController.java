@@ -7,8 +7,14 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class MenuController {
-    public static void addMenu(Menu menu) throws SQLException {
-        MenuDAO.addMenu(menu);
+    private static MenuDAO menuDAO;
+
+    public MenuController() throws SQLException {
+        menuDAO = new MenuDAO();
+    }
+
+    public boolean addMenu(Menu menu) throws SQLException {
+        return menuDAO.addMenu(menu);
     }
     public static void deleteMenu(String menuTitle, int restaurantID) throws SQLException {
         MenuDAO.deleteMenuByTitleAndRestaurantID(menuTitle,restaurantID);

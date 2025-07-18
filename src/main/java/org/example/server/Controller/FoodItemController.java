@@ -8,6 +8,12 @@ import org.json.JSONArray;
 import java.sql.SQLException;
 
 public class FoodItemController {
+    private static FoodItemDAO foodItemDAO;
+
+    public FoodItemController() throws SQLException {
+        foodItemDAO = new FoodItemDAO();
+    }
+
     public static void addFoodItem(FoodItem foodItem) throws SQLException {
         FoodItemDAO.addFoodItem(foodItem);
     }
