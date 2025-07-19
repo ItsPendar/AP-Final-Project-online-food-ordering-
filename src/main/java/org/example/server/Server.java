@@ -15,7 +15,6 @@ public class Server {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
 
     public static void main(String[] args) throws SQLException, IOException {
-
         DatabaseConnectionManager.getConnection();
         // Set up the HTTP server
         HttpServer server = HttpServer.create(new InetSocketAddress("localhost",8080), 0);

@@ -135,15 +135,14 @@ public class FoodItemDAO {
         List<String> menus = new ArrayList<>(Arrays.asList(parts));
         return menus;
     }
-    public ArrayNode getItemsInAMenu(String menuTitle) throws SQLException {
+    public ArrayNode getItemsInAMenu(String menuTitle, int restaurantID) throws SQLException {
+        System.out.println("getting items in a menu is happening in FoodItemDAO");
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode foodItems = mapper.createArrayNode();
-
-        String query = "SELECT * FROM foods WHERE ? = ANY(menu_title)";
-
+        String query = "SELECT * FROM foods WHERE ? = ANY(menu_title) AND restaurant_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, menuTitle);
-
+            stmt.setInt(2,restaurantID);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ObjectNode item = mapper.createObjectNode();
@@ -164,7 +163,7 @@ public class FoodItemDAO {
                     }
                     item.put("vendor_id", rs.getInt("restaurant_id"));
                     item.put("id", rs.getInt("food_id"));
-                    item.put("imageBase64", rs.getString("imageBase64"));
+                    item.put("imageBase64", rs.getString("image_Base64"));
                     foodItems.add(item);
                 }
             }

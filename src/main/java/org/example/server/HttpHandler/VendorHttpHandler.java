@@ -30,8 +30,7 @@ public class VendorHttpHandler implements HttpHandler {
         System.out.println("request method : " + requestMethod);
         System.out.println("request path is : " + path);
         if (path.matches("/vendors/\\d+") && requestMethod.equals("GET")) {
-            System.out.println("get list of menus and items request received!");
-            //TODO : get list of menus and items
+            //TODO : get list of menus and items ✅
             int vendorID = extractId(path, "/vendors/", "");
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode vendorInfoJson = mapper.createObjectNode();
@@ -53,7 +52,7 @@ public class VendorHttpHandler implements HttpHandler {
             ArrayNode arrayNode = mapper.createArrayNode();
             try {
                 for (String title : MenuController.getMenuTitlesOfARestaurant(vendorID)) {
-                    menuItemsArrayNode = foodItemController.getItemsInAMenu(title);
+                    menuItemsArrayNode = foodItemController.getItemsInAMenu(title,vendorID);
                     response.set(title, menuItemsArrayNode);
                     arrayNode.add(title);
                 }

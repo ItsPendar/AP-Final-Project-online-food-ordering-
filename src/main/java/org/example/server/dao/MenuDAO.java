@@ -39,9 +39,7 @@ public class MenuDAO {
         String query = "INSERT INTO menus (title, restaurant_id) VALUES (?, ?)";
         PreparedStatement stmt = connection.prepareStatement(query);
         stmt.setString(1,menu.getMenuTitle());
-        System.out.println("menu title in DAO : " + menu.getMenuTitle());
         stmt.setInt(2, menu.getRestaurantID());
-        System.out.println("restaurantID in DAO : " + menu.getRestaurantID());
         stmt.executeUpdate();
         return true;
     }

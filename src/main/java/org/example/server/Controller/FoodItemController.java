@@ -29,7 +29,7 @@ public class FoodItemController {
     public void deleteItemFromMenu(int foodItemID, String menuTitle) throws SQLException {
         foodItemDAO.deleteItemFromMenu(foodItemID, menuTitle);
     }
-    public  ArrayNode getItemsInAMenu(String menuTitle) throws SQLException {
-        return foodItemDAO.getItemsInAMenu(menuTitle);
+    public  ArrayNode getItemsInAMenu(String menuTitle, int restaurantID) throws SQLException {
+        return foodItemDAO.getItemsInAMenu(menuTitle,restaurantID);
     }
 }
