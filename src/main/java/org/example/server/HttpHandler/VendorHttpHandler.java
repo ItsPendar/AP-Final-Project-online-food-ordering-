@@ -27,8 +27,6 @@ public class VendorHttpHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
-        System.out.println("request method : " + requestMethod);
-        System.out.println("request path is : " + path);
         if (path.matches("/vendors/\\d+") && requestMethod.equals("GET")) {
             //TODO : get list of menus and items ✅
             int vendorID = extractId(path, "/vendors/", "");

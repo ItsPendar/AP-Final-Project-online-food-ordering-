@@ -15,6 +15,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.example.server.Util.JWTHandler;
 import io.jsonwebtoken.*;
+import org.xml.sax.ext.DeclHandler;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ public class RestaurantHttpHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
+        System.out.println("initial path : " + path);
         if (path.equals("/restaurants") && requestMethod.equalsIgnoreCase("POST")) {
             //TODO : create a restaurant
             try {
@@ -71,7 +74,7 @@ public class RestaurantHttpHandler implements HttpHandler {
             } catch (Exception e) {
                 sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());
             }
-        }
+        }//create a restaurant✅
         else if (path.equals("/restaurants/mine") && requestMethod.equalsIgnoreCase("GET")) {
             //TODO : get list of restaurants
             try {
@@ -107,7 +110,7 @@ public class RestaurantHttpHandler implements HttpHandler {
             } catch (SQLException e) {
                 sendErrorResponse(exchange, 500, "Internal Server Error: " + e.getMessage());
             }
-        }
+        }//get list of restaurants✅
         else if (path.matches("/restaurants/\\d+") && requestMethod.equalsIgnoreCase("PUT")) {
             //TODO : update restaurant info
             int id =  Integer.parseInt(path.substring(path.lastIndexOf("/") + 1));
@@ -139,7 +142,7 @@ public class RestaurantHttpHandler implements HttpHandler {
                     throw new RuntimeException(e);
                 }
             }
-        }
+        }//update restaurant info
         else if (path.matches("/restaurants/\\d+/item") && requestMethod.equals("POST")) {
             System.out.println("add item request detected");
             //TODO : add item to restaurant
@@ -191,12 +194,11 @@ public class RestaurantHttpHandler implements HttpHandler {
                 throw new RuntimeException(e);
             }
 
-        }
+        }//add item to restaurant✅
         else if (path.matches("/restaurants/\\d+/item/\\d+") && requestMethod.equals("PUT")) {
             //TODO : edit an item of a restaurant
-            String[] parts = path.split("/");
-            int restaurantID = Integer.parseInt(parts[2]);
-            int itemID = Integer.parseInt(parts[4]);
+            int restaurantID = Integer.parseInt(path.split("/")[2]);
+            int itemID = Integer.parseInt(path.split("/")[4]);
             if(JWTHandler.doesUserOwnRestaurant(exchange,restaurantID)) {
                 String body = new String(exchange.getRequestBody().readAllBytes());
                 JSONObject json = new JSONObject(body);
@@ -212,19 +214,30 @@ public class RestaurantHttpHandler implements HttpHandler {
                     keywords.add(keywordsJson.getString(i));
                 }
                 newFoodItem.setKeyword(keywords);
+                JSONObject responseBody = new JSONObject();
                 try {
-                    foodItemController.updateFoodItem(itemID,newFoodItem);
+                    if(foodItemController.updateFoodItem(itemID,newFoodItem)) {
+                        responseBody.put("name", newFoodItem.getName());
+                        responseBody.put("description",newFoodItem.getDescription());
+                        responseBody.put("price",newFoodItem.getPrice());
+                        responseBody.put("supply", newFoodItem.getSupply());
+                        responseBody.put("keywords",newFoodItem.getKeyword());
+                        responseBody.put("vendor_id", restaurantID);
+                        responseBody.put("id",itemID);
+                        responseBody.put("imageBase64",newFoodItem.getImageBase64());
+                        sendResponse(exchange,200,responseBody);
+                    }
+                    else{
+                        sendErrorResponse(exchange,500,"internal server error. Couldn't update the item");
+                    }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
             else{
-                String response = "Unauthorized request";
-                exchange.sendResponseHeaders(401, response.length());
-                exchange.getResponseBody().write(response.getBytes());
-                exchange.getResponseBody().close();//user doesn't own this restaurant
+                sendErrorResponse(exchange,401,"Unauthorized request");
             }
-        }
+        }//edit an item of a restaurant✅
         else if (path.matches("/restaurants/\\d+/item/\\d+") && requestMethod.equals("DELETE")) {
             //TODO : delete an item of a restaurant
             String[] parts = path.split("/");
@@ -232,18 +245,23 @@ public class RestaurantHttpHandler implements HttpHandler {
             int itemID = Integer.parseInt(parts[4]);
             if(JWTHandler.doesUserOwnRestaurant(exchange,restaurantID)) {
                 try {
-                    foodItemController.deleteFoodItemFromRestaurant(itemID,restaurantID);
+                    if(foodItemController.deleteFoodItemFromRestaurant(itemID,restaurantID)){
+                        JSONObject response = new JSONObject();
+                        response.put("message", "food item deleted successfully");
+                        sendResponse(exchange,200,response);
+                    }
+                    else{
+                        sendErrorResponse(exchange,500,"internal server error : couldn't delete the item");
+                    }
+
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
             else{
-                String response = "Unauthorized request";
-                exchange.sendResponseHeaders(401, response.length());
-                exchange.getResponseBody().write(response.getBytes());
-                exchange.getResponseBody().close();//user doesn't own this restaurant
+                sendErrorResponse(exchange,401,"Unauthorized request");
             }
-        }
+        }//delete an item of a restaurant
         else if (path.matches("/restaurants/\\d+/menu") && requestMethod.equals("POST")) {
             //TODO : add a menu to restaurant
             int userID = JWTHandler.getUserIDByToken(exchange);
@@ -274,27 +292,24 @@ public class RestaurantHttpHandler implements HttpHandler {
                     throw new RuntimeException(e);
                 }
             }
-        }//add a new menu
+        }//add a new menu✅
         else if (path.matches("/restaurants/\\d+/menu/[^/]+") && requestMethod.equals("DELETE")) {
             int restaurantID = extractId(path, "/restaurants/", "/menu/");
             String menuTitle = path.substring(path.lastIndexOf("/") + 1);
             //TODO : delete a menu
-            String[] parts = path.split("/");
-            //int restaurantID = Integer.parseInt(parts[2]);
             if(JWTHandler.doesUserOwnRestaurant(exchange,restaurantID)) {
                     try {
                         MenuController.deleteMenu(menuTitle, restaurantID);
+                        sendResponse(exchange,200,"menu deleted successfully");
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
             }
             else{
-                String response = "Unauthorized request";
-                exchange.sendResponseHeaders(401, response.length());
-                exchange.getResponseBody().write(response.getBytes());
-                exchange.getResponseBody().close();//user doesn't own this restaurant
+                String response = "Unauthorized request1";
+                sendErrorResponse(exchange,401,response);
             }
-        }
+        }//delete a menu✅
         else if (path.matches("/restaurants/\\d+/menu/[^/]+") && requestMethod.equals("PUT")) {
             int restaurantID = extractId(path, "/restaurants/", "/menu/");
             String menuTitle = path.substring(path.lastIndexOf("/") + 1);
@@ -315,7 +330,7 @@ public class RestaurantHttpHandler implements HttpHandler {
                 exchange.getResponseBody().write(response.getBytes());
                 exchange.getResponseBody().close();//user doesn't own this restaurant
             }
-        }
+        }//add an item to a menu
         else if (path.matches("/restaurants/\\d+/menu/[^/]+/\\d+") && requestMethod.equals("DELETE")) {
             String[] parts = path.split("/");
             int itemID = Integer.parseInt(parts[2]);
@@ -327,12 +342,9 @@ public class RestaurantHttpHandler implements HttpHandler {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-        }
+        }//remove item from menu
         else{
-            String response = "Request method not allowed";
-            exchange.sendResponseHeaders(405, response.length());
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.getResponseBody().close();
+            sendErrorResponse(exchange,405,"Request method not allowed");
         }
     }
 
@@ -340,6 +352,14 @@ public class RestaurantHttpHandler implements HttpHandler {
         JSONObject errorJson = new JSONObject();
         errorJson.put("error", message);
         byte[] response = errorJson.toString().getBytes();
+        exchange.sendResponseHeaders(statusCode, response.length);
+        exchange.getResponseBody().write(response);
+        exchange.getResponseBody().close();
+    }
+    private void sendResponse(HttpExchange exchange, int statusCode, String message) throws IOException {
+        JSONObject messageJson = new JSONObject();
+        messageJson.put("message", message);
+        byte[] response = messageJson.toString().getBytes();
         exchange.sendResponseHeaders(statusCode, response.length);
         exchange.getResponseBody().write(response);
         exchange.getResponseBody().close();

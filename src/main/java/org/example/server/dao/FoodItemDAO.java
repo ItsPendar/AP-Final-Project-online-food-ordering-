@@ -33,7 +33,7 @@ public class FoodItemDAO {
                         "name VARCHAR(255) NOT NULL, " +
                         "description TEXT, " +
                         "price REAL, " +
-                        "supply BIGINT, " +
+                        "supply INTEGER, " +
                         "keywords TEXT[], " +
                         "image_base64 TEXT, " +
                         "menu_title TEXT[], " +
@@ -83,15 +83,16 @@ public class FoodItemDAO {
         preparedStatement.setInt(2,itemID);
         preparedStatement.executeUpdate();
     }
-    public void deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
-        String sql = "DELETE * from foods WHERE food_id = ?";
+    public boolean deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
+        String sql = "DELETE from foods WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
         preparedStatement.setInt(1, foodItemID);
         preparedStatement.executeUpdate();
+        return true;
     }
-    public void updateFoodItem(int itemID, FoodItem foodItem) throws SQLException {
-        String sql = "UPDATE foods SET name = ?,imageBase64 = ?, description = ?, keywords = ?, price = ?, supply = ?, menu_title = ? WHERE food_id = ?";
+    public boolean updateFoodItem(int itemID, FoodItem foodItem) throws SQLException {
+        String sql = "UPDATE foods SET name = ?,image_base64 = ?, description = ?, keywords = ?, price = ?, supply = ? WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
         preparedStatement.setString(1, foodItem.getName());
@@ -101,10 +102,10 @@ public class FoodItemDAO {
         preparedStatement.setArray(4, keyWordArray);
         preparedStatement.setDouble(5, foodItem.getPrice());
         preparedStatement.setInt(6, foodItem.getSupply());
-        Array menuArray = connection.createArrayOf("text", foodItem.getMenuTitle().toArray(new String[0]));
-        preparedStatement.setArray(7, menuArray);
-        preparedStatement.setInt(8, itemID);
+        preparedStatement.setInt(7, itemID);
+        System.out.println("item id in DAO : " + itemID);
         preparedStatement.executeUpdate();
+        return true;
     }
     public void deleteItemFromMenu(int itemID, String menuTitle) throws SQLException {
         String sql = "UPDATE foods SET menu_title = ? WHERE food_id = ?";

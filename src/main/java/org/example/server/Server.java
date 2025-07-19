@@ -23,7 +23,6 @@ public class Server {
         server.createContext("/auth/profile", new ProfileHttpHandler());
         server.createContext("/restaurants", new RestaurantHttpHandler());
         server.createContext("/vendors", new VendorHttpHandler());
-
         server.setExecutor(null);
         server.start();
         System.out.println("Server is running at: " + server.getAddress());

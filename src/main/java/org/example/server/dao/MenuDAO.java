@@ -58,7 +58,7 @@ public class MenuDAO {
     }
     public int getMenuIDByTitleAndRestaurantID(String menuTitle, int restaurantID) {
         try {
-            String query = "SELECT menu_id FROM menus WHERE (title, restaurant_id) = (?, ?)";
+            String query = "SELECT menu_id FROM menus WHERE title = ? AND restaurant_id = ?";
             PreparedStatement stmt = connection.prepareStatement(query);
             stmt.setString(1, menuTitle);
             stmt.setInt(2, restaurantID);
@@ -75,7 +75,7 @@ public class MenuDAO {
 
     public void deleteMenuByTitleAndRestaurantID(String title, int restaurantID) throws SQLException {
         int menuID = getMenuIDByTitleAndRestaurantID(title, restaurantID);
-        String sql = "DELETE * from menus WHERE menu_id = ?";
+        String sql = "DELETE from menus WHERE menu_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
         preparedStatement.setInt(1, menuID);

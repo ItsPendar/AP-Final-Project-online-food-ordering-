@@ -59,10 +59,14 @@ public class JWTHandler {
     }
     public static boolean doesUserOwnRestaurant(HttpExchange exchange, int restaurantID) {
         int userID = getUserIDByToken(exchange);
-        int rsetaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
-        if(restaurantID == userID) {
+        System.out.println("userID : " + userID);
+        int restaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
+        System.out.println("ownerID : " + restaurantOwnerID);
+        if(restaurantOwnerID == userID) {
             return true;
         }
-        else return false;
+        else{
+            return false;
+        }
     }
 }

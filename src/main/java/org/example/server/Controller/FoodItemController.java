@@ -20,11 +20,11 @@ public class FoodItemController {
     public void addItemToMenu(int itemID, String menuTitle) throws SQLException {
         foodItemDAO.addItemToMenu(itemID, menuTitle);
     }
-    public void deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
-        foodItemDAO.deleteFoodItemFromRestaurant(foodItemID,restaurantID);
+    public boolean deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
+        return foodItemDAO.deleteFoodItemFromRestaurant(foodItemID,restaurantID);
     }
-    public void updateFoodItem(int itemID, FoodItem newFoodItem) throws SQLException {
-        foodItemDAO.updateFoodItem(itemID,newFoodItem);
+    public boolean updateFoodItem(int itemID, FoodItem newFoodItem) throws SQLException {
+        return foodItemDAO.updateFoodItem(itemID,newFoodItem);
     }
     public void deleteItemFromMenu(int foodItemID, String menuTitle) throws SQLException {
         foodItemDAO.deleteItemFromMenu(foodItemID, menuTitle);
