@@ -12,7 +12,6 @@ import java.util.List;
 
 public class MenuDAO {
     private static final Connection connection;
-
     static {
         try {
             connection = DatabaseConnectionManager.getConnection();
@@ -45,6 +44,19 @@ public class MenuDAO {
         System.out.println("restaurantID in DAO : " + menu.getRestaurantID());
         stmt.executeUpdate();
         return true;
+    }
+    public boolean doesMenuExist(int restaurantID, String title) {
+        String query = "SELECT 1 FROM menus WHERE restaurant_id = ? AND title = ? LIMIT 1";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, restaurantID);
+            stmt.setString(2, title);
+
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // if a result exists, the menu exists
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false; // or throw new RuntimeException(e);
+        }
     }
     public int getMenuIDByTitleAndRestaurantID(String menuTitle, int restaurantID) {
         try {

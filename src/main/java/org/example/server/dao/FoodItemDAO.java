@@ -43,7 +43,9 @@ public class FoodItemDAO {
         preparedStatement.executeUpdate();
     }
     public int addFoodItem(FoodItem foodItem) throws SQLException {
-        String query = "INSERT INTO foods (name, description, price, supply, keywords, image_base64, restaurant_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO foods " +
+                "(name, description, price, supply, keywords, image_base64, restaurant_id, menu_title) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
         System.out.println("adding food item is happening in DAO");
         stmt.setString(1, foodItem.getName());
@@ -53,14 +55,15 @@ public class FoodItemDAO {
         stmt.setDouble(3, foodItem.getPrice());
         System.out.println("price : " + foodItem.getPrice());
         stmt.setInt(4, foodItem.getSupply());
-        System.out.println("supply" + foodItem.getSupply());
+        System.out.println("supply : " + foodItem.getSupply());
         Array keyWordArray = connection.createArrayOf("text", foodItem.getKeyword().toArray(new String[0]));
         stmt.setArray(5, keyWordArray);
-        String[] keywordValues = foodItem.getKeyword().toArray(new String[0]);
-        System.out.println("keywords : " + String.join(" , ", keywordValues));
-        stmt.setString(6, foodItem.getImageBase64());;
+        System.out.println("keywords : " + String.join(" , ", foodItem.getKeyword()));
+        stmt.setString(6, foodItem.getImageBase64());
         stmt.setInt(7, foodItem.getRestaurantID());
         System.out.println("restaurant ID : " + foodItem.getRestaurantID());
+        Array menuArray = connection.createArrayOf("text", new String[] { "all" });
+        stmt.setArray(8, menuArray);
         stmt.executeUpdate();
         ResultSet generatedKeys = stmt.getGeneratedKeys();
         if (generatedKeys.next()) {
@@ -144,12 +147,10 @@ public class FoodItemDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ObjectNode item = mapper.createObjectNode();
-
                     item.put("name", rs.getString("name"));
                     item.put("description", rs.getString("description"));
                     item.put("price", rs.getInt("price"));
                     item.put("supply", rs.getInt("supply"));
-
                     Array sqlArray = rs.getArray("keywords");
                     if (sqlArray != null) {
                         String[] keywordsArray = (String[]) sqlArray.getArray();
@@ -161,11 +162,9 @@ public class FoodItemDAO {
                     } else {
                         item.set("keywords", mapper.createArrayNode());
                     }
-
-                    item.put("vendor_id", rs.getInt("vendor_id"));
-                    item.put("id", rs.getInt("id"));
+                    item.put("vendor_id", rs.getInt("restaurant_id"));
+                    item.put("id", rs.getInt("food_id"));
                     item.put("imageBase64", rs.getString("imageBase64"));
-
                     foodItems.add(item);
                 }
             }

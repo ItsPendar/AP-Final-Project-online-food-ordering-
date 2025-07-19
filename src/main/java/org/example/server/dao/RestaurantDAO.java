@@ -1,5 +1,6 @@
 package org.example.server.dao;
 
+import org.example.server.modules.Menu;
 import org.example.server.modules.Restaurant;
 import org.example.server.modules.User;
 
@@ -9,7 +10,7 @@ import java.util.List;
 
 public class RestaurantDAO {
     private static final Connection connection;
-
+    private static MenuDAO menuDAO;
     static {
         try {
             connection = DatabaseConnectionManager.getConnection();
@@ -20,6 +21,7 @@ public class RestaurantDAO {
 
     public RestaurantDAO() throws SQLException {
         this.createRestaurantTable();
+        menuDAO = new MenuDAO();
     }
 
     public void createRestaurantTable() throws SQLException {
@@ -81,7 +83,7 @@ public class RestaurantDAO {
 
     public void createRestaurant(Restaurant restaurant) throws SQLException {
         String query = "INSERT INTO restaurants (name, address, phone, logo_base64, tax_fee, additional_fee, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        PreparedStatement stmt = connection.prepareStatement(query);
+        PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
         stmt.setString(1, restaurant.getName());
         stmt.setString(2, restaurant.getAddress());
         stmt.setString(3, restaurant.getPhone());
@@ -90,6 +92,17 @@ public class RestaurantDAO {
         stmt.setDouble(6, restaurant.getAdditionalFee());
         stmt.setInt(7, restaurant.getOwnerID());
         stmt.executeUpdate();
+        ResultSet generatedKeys = stmt.getGeneratedKeys();
+        if (generatedKeys.next()) {
+            initializeGeneralMenu(generatedKeys.getInt(1));
+        } else {
+            throw new SQLException("Creating food item failed, no ID obtained.");
+        }
+    }
+    public void initializeGeneralMenu(int restaurantID) throws SQLException {
+        Menu newMenu = new Menu(restaurantID,"all");
+        if(!menuDAO.doesMenuExist(restaurantID, "all"))
+            menuDAO.addMenu(newMenu);
     }
     public String getRestaurantIDByPhoneNumber(String phoneNumber) {
         try {
@@ -161,7 +174,7 @@ public class RestaurantDAO {
         restaurant.setAddress(resultSet.getString("address"));
         restaurant.setTaxFee(resultSet.getDouble("tax_fee"));
         restaurant.setAdditionalFee(resultSet.getDouble("additional_fee"));
-        restaurant.setLogoBase64(resultSet.getString("logoBase64"));
+        restaurant.setLogoBase64(resultSet.getString("logo_Base64"));
         return restaurant;
     }
 }

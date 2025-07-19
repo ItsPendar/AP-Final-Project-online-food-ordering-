@@ -13,6 +13,7 @@ import org.example.server.dao.RestaurantDAO;
 import org.example.server.modules.Restaurant;
 import org.example.server.modules.User;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -25,15 +26,18 @@ public class VendorHttpHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
-        if(requestMethod.equals("GET")) {//getting list of menus and food items
-            String path = exchange.getRequestURI().getPath();
-            String[] parts = path.split("/");
-            int vendorID = Integer.parseInt(parts[2]);
+        String path = exchange.getRequestURI().getPath();
+        System.out.println("request method : " + requestMethod);
+        System.out.println("request path is : " + path);
+        if (path.matches("/vendors/\\d+") && requestMethod.equals("GET")) {
+            System.out.println("get list of menus and items request received!");
+            //TODO : get list of menus and items
+            int vendorID = extractId(path, "/vendors/", "");
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode vendorInfoJson = mapper.createObjectNode();
             ObjectNode response = mapper.createObjectNode();
             ArrayNode menuItemsArrayNode;
-            //TODO : add vendor info to vendorInfoJson and add vendorInfoJson to response
+            //TODO : add vendor info to vendorInfoJson and add vendorInfoJson to response ✅
             Restaurant vendor = new Restaurant();
             vendor = RestaurantDAO.getRestaurantByID(vendorID);
             vendorInfoJson.put("name", vendor.getName());
@@ -44,8 +48,8 @@ public class VendorHttpHandler implements HttpHandler {
             vendorInfoJson.put("logoBase64", vendor.getLogoBase64());
             vendorInfoJson.put("id", vendorID);
             response.set("vendor", vendorInfoJson);
-            //TODO : add menu titles to menuTitlesJson and add menuTitlesJson to response
-            //and TODO : add food items to a json named by the menu title and add this json to response
+            //TODO : add menu titles to menuTitlesJson and add menuTitlesJson to response ✅
+            //and TODO : add food items to a json named by the menu title and add this json to response ✅
             ArrayNode arrayNode = mapper.createArrayNode();
             try {
                 for (String title : MenuController.getMenuTitlesOfARestaurant(vendorID)) {
@@ -57,9 +61,7 @@ public class VendorHttpHandler implements HttpHandler {
                 throw new RuntimeException(e);
             }
             response.set("menu_titles", arrayNode);
-        }
-        else if(requestMethod.equals("POST")) {//List vendors with optional filters
-
+            sendResponse(exchange,200,response);
         }
         else{
             String response = "Request method not allowed";
@@ -68,4 +70,30 @@ public class VendorHttpHandler implements HttpHandler {
             exchange.getResponseBody().close();
         }
     }
+    private int extractId(String path, String prefix, String suffix) {
+        try {
+            String temp = path.substring(prefix.length());
+            if (!suffix.isEmpty() && temp.contains(suffix)) {
+                temp = temp.substring(0, temp.indexOf(suffix));
+            }
+            return Integer.parseInt(temp);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid path format for extracting ID");
+        }
+    }
+    private void sendErrorResponse(HttpExchange exchange, int statusCode, String message) throws IOException {
+        JSONObject errorJson = new JSONObject();
+        errorJson.put("error", message);
+        byte[] response = errorJson.toString().getBytes();
+        exchange.sendResponseHeaders(statusCode, response.length);
+        exchange.getResponseBody().write(response);
+        exchange.getResponseBody().close();
+    }
+    private void sendResponse(HttpExchange exchange, int statusCode, ObjectNode responseBody) throws IOException {
+        byte[] response = responseBody.toString().getBytes();
+        exchange.sendResponseHeaders(statusCode, response.length);
+        exchange.getResponseBody().write(response);
+        exchange.getResponseBody().close();
+    }
+
 }
