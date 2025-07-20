@@ -144,11 +144,9 @@ public class RestaurantHttpHandler implements HttpHandler {
             }
         }//update restaurant info
         else if (path.matches("/restaurants/\\d+/item") && requestMethod.equals("POST")) {
-            System.out.println("add item request detected");
             //TODO : add item to restaurant
             int userID = JWTHandler.getUserIDByToken(exchange);
             int restaurantID = Integer.parseInt(exchange.getRequestURI().getPath().replace("/restaurants/", "").replace("/item", "").split("/")[0]);
-            System.out.println("restaurantId is : " + restaurantID);
             int restaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
             if(!(userID  == restaurantOwnerID)) {
                 sendErrorResponse(exchange, 401, "Unauthorized request"); //user doesn't own this restaurant
@@ -156,7 +154,6 @@ public class RestaurantHttpHandler implements HttpHandler {
             }
             //checking the user owns the restaurant done
             String body = new String(exchange.getRequestBody().readAllBytes());
-            System.out.println("body of the request is : " + "sample request body");
             JSONObject json = new JSONObject(body);
             FoodItem newItem = new FoodItem();
             newItem.setName(json.getString("name"));
@@ -184,7 +181,6 @@ public class RestaurantHttpHandler implements HttpHandler {
                     responseBody.put("vendor_id", restaurantID);
                     responseBody.put("id", itemID);
                     responseBody.put("imageBase64", newItem.getImageBase64());
-                    System.out.println("response body is : " + "sampleResponseBody");
                     sendResponse(exchange,200,responseBody);
                 }
                 else{
@@ -261,13 +257,12 @@ public class RestaurantHttpHandler implements HttpHandler {
             else{
                 sendErrorResponse(exchange,401,"Unauthorized request");
             }
-        }//delete an item of a restaurant
+        }//delete an item of a restaurant✅
         else if (path.matches("/restaurants/\\d+/menu") && requestMethod.equals("POST")) {
             //TODO : add a menu to restaurant
             int userID = JWTHandler.getUserIDByToken(exchange);
             int restaurantID = extractId(path, "/restaurants/", "/menu");
             int restaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
-            System.out.println("ownerId is : " + restaurantOwnerID);
             if(!(userID  == restaurantOwnerID)) {
                 sendErrorResponse(exchange,401,"Unauthorized request");//user doesn't own this restaurant
             }
@@ -319,30 +314,37 @@ public class RestaurantHttpHandler implements HttpHandler {
                 JSONObject json = new JSONObject(body);
                 int itemID = json.getInt("item_id");
                 try {
-                    foodItemController.addItemToMenu(itemID, menuTitle);
+                    if(foodItemController.addItemToMenu(itemID, menuTitle)) {
+                        sendResponse(exchange,200,"added item to menu successfully");
+                    }
+                    else {
+                        sendErrorResponse(exchange,500,"internal server error : couldn't add the item to menu");
+                    }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
             else{
-                String response = "Unauthorized request";
-                exchange.sendResponseHeaders(401, response.length());
-                exchange.getResponseBody().write(response.getBytes());
-                exchange.getResponseBody().close();//user doesn't own this restaurant
+                sendErrorResponse(exchange,401,"Unauthorized request");
             }
-        }//add an item to a menu
+        }//add an item to a menu✅
         else if (path.matches("/restaurants/\\d+/menu/[^/]+/\\d+") && requestMethod.equals("DELETE")) {
             String[] parts = path.split("/");
-            int itemID = Integer.parseInt(parts[2]);
+            int restaurantID = Integer.parseInt(parts[2]);
             String menuTitle = parts[4];
-            int itemId = Integer.parseInt(parts[5]);
+            int itemID = Integer.parseInt(parts[5]);
             //TODO : remove item from menu
             try {
-                foodItemController.deleteItemFromMenu(itemID, menuTitle);
+                if(foodItemController.deleteItemFromMenu(itemID, menuTitle)) {
+                    sendResponse(exchange,200,"deleted the item from menu successfully");
+                }
+                else {
+                    sendErrorResponse(exchange,500,"Internal server error : failed to delete item from menu");
+                }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-        }//remove item from menu
+        }//remove item from menu✅
         else{
             sendErrorResponse(exchange,405,"Request method not allowed");
         }
@@ -404,16 +406,13 @@ public class RestaurantHttpHandler implements HttpHandler {
             if (!path.startsWith(prefix)) {
                 throw new IllegalArgumentException("Path does not start with expected prefix");
             }
-
             String temp = path.substring(prefix.length());
-
             if (suffix != null && !suffix.isEmpty()) {
                 int endIndex = temp.indexOf(suffix);
                 if (endIndex != -1) {
                     temp = temp.substring(0, endIndex);
                 }
             }
-
             return Integer.parseInt(temp);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid path format for extracting ID: " + path);

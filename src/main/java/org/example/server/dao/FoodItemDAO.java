@@ -1,5 +1,6 @@
 package org.example.server.dao;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -11,6 +12,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FoodItemDAO {
     private static final Connection connection;
@@ -47,21 +49,14 @@ public class FoodItemDAO {
                 "(name, description, price, supply, keywords, image_base64, restaurant_id, menu_title) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-        System.out.println("adding food item is happening in DAO");
         stmt.setString(1, foodItem.getName());
-        System.out.println("name : " + foodItem.getName());
         stmt.setString(2, foodItem.getDescription());
-        System.out.println("description : " + foodItem.getDescription());
         stmt.setDouble(3, foodItem.getPrice());
-        System.out.println("price : " + foodItem.getPrice());
         stmt.setInt(4, foodItem.getSupply());
-        System.out.println("supply : " + foodItem.getSupply());
         Array keyWordArray = connection.createArrayOf("text", foodItem.getKeyword().toArray(new String[0]));
         stmt.setArray(5, keyWordArray);
-        System.out.println("keywords : " + String.join(" , ", foodItem.getKeyword()));
         stmt.setString(6, foodItem.getImageBase64());
         stmt.setInt(7, foodItem.getRestaurantID());
-        System.out.println("restaurant ID : " + foodItem.getRestaurantID());
         Array menuArray = connection.createArrayOf("text", new String[] { "all" });
         stmt.setArray(8, menuArray);
         stmt.executeUpdate();
@@ -72,16 +67,17 @@ public class FoodItemDAO {
             throw new SQLException("Creating food item failed, no ID obtained.");
         }
     }
-    public void addItemToMenu(int itemID, String menuTitle) throws SQLException {
+    public boolean addItemToMenu(int itemID, String menuTitle) throws SQLException {
         String sql = "UPDATE foods SET menu_title = ? WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
-        List<String> menuTitles = getMenusOfAnItem(itemID);
+        List<String> menuTitles = getMenusOfAnItemAsList(itemID);
         menuTitles.add(menuTitle);
         Array menuArray = connection.createArrayOf("text", menuTitles.toArray(new String[0]));
         preparedStatement.setArray(1, menuArray);
         preparedStatement.setInt(2,itemID);
         preparedStatement.executeUpdate();
+        return true;
     }
     public boolean deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
         String sql = "DELETE from foods WHERE food_id = ?";
@@ -107,37 +103,46 @@ public class FoodItemDAO {
         preparedStatement.executeUpdate();
         return true;
     }
-    public void deleteItemFromMenu(int itemID, String menuTitle) throws SQLException {
+    public boolean deleteItemFromMenu(int itemID, String menuTitle) throws SQLException {
         String sql = "UPDATE foods SET menu_title = ? WHERE food_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
-        List<String> menuTitles = getMenusOfAnItem(itemID);
+        List<String> menuTitles = getMenusOfAnItemAsList(itemID);
         menuTitles.remove(menuTitle);
-        preparedStatement.setString(1, String.join(",", menuTitles));
+        Array menuArray = connection.createArrayOf("text", menuTitles.toArray(new String[0]));
+        preparedStatement.setArray(1, menuArray);
         preparedStatement.setInt(2,itemID);
         preparedStatement.executeUpdate();
+        return true;
     }
-    public List<String> getMenusOfAnItem(int itemID) {
-        String listOfMenus = null;
-        try {
-            String query = "SELECT menu_title FROM foods WHERE food_id = ?";
-            PreparedStatement stmt = connection.prepareStatement(query);
-            stmt.setInt(1, itemID);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                listOfMenus =  rs.getString("menu_title");
+    public ArrayNode getMenusOfAnItem(int itemID) throws SQLException {
+       List<String> listOfMenus = getMenusOfAnItemAsList(itemID);
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode arrayNode = mapper.createArrayNode();
+        for (String item : listOfMenus) {
+            arrayNode.add(item);
+        }
+        return arrayNode;
+    }
+    public List<String> getMenusOfAnItemAsList(int itemID) throws SQLException {
+        List<String> listOfMenus = new ArrayList<>();
+        String query = "SELECT menu_title FROM foods WHERE food_id = ?";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setInt(1, itemID);
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            String raw = rs.getString("menu_title");
+            if (raw != null) {
+                String[] array = raw.replace("{", "").replace("}", "").split(",");
+                listOfMenus = Arrays.stream(array)
+                        .map(String::trim)
+                        .collect(Collectors.toList());
             }
         }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
-        assert listOfMenus != null;
-        String[] parts = listOfMenus.split(",");
-        List<String> menus = new ArrayList<>(Arrays.asList(parts));
-        return menus;
-    }
+        return listOfMenus;
+    }//keep one of these methods with the same name
     public ArrayNode getItemsInAMenu(String menuTitle, int restaurantID) throws SQLException {
-        System.out.println("getting items in a menu is happening in FoodItemDAO");
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode foodItems = mapper.createArrayNode();
         String query = "SELECT * FROM foods WHERE ? = ANY(menu_title) AND restaurant_id = ?";
@@ -170,5 +175,19 @@ public class FoodItemDAO {
             }
         }
         return foodItems;
+    }
+    public List<Integer> getItemIDsInARestaurant(int restaurantID) throws SQLException {
+        List<Integer> itemIDsList = new ArrayList<>();
+        String query = "SELECT food_id FROM foods WHERE 'all' = ANY(menu_title) AND restaurant_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            //stmt.setString(1, "all");
+            stmt.setInt(1,restaurantID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    itemIDsList.add(rs.getInt("food_id"));
+                }
+            }
+        }
+        return itemIDsList;
     }
 }

@@ -6,6 +6,7 @@ import org.example.server.modules.FoodItem;
 import org.json.JSONArray;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class FoodItemController {
     private static FoodItemDAO foodItemDAO;
@@ -17,8 +18,8 @@ public class FoodItemController {
     public int addFoodItem(FoodItem foodItem) throws SQLException {
         return foodItemDAO.addFoodItem(foodItem);
     }
-    public void addItemToMenu(int itemID, String menuTitle) throws SQLException {
-        foodItemDAO.addItemToMenu(itemID, menuTitle);
+    public boolean addItemToMenu(int itemID, String menuTitle) throws SQLException {
+        return foodItemDAO.addItemToMenu(itemID, menuTitle);
     }
     public boolean deleteFoodItemFromRestaurant(int foodItemID, int restaurantID) throws SQLException {
         return foodItemDAO.deleteFoodItemFromRestaurant(foodItemID,restaurantID);
@@ -26,10 +27,16 @@ public class FoodItemController {
     public boolean updateFoodItem(int itemID, FoodItem newFoodItem) throws SQLException {
         return foodItemDAO.updateFoodItem(itemID,newFoodItem);
     }
-    public void deleteItemFromMenu(int foodItemID, String menuTitle) throws SQLException {
-        foodItemDAO.deleteItemFromMenu(foodItemID, menuTitle);
+    public boolean deleteItemFromMenu(int foodItemID, String menuTitle) throws SQLException {
+        return foodItemDAO.deleteItemFromMenu(foodItemID, menuTitle);
     }
     public  ArrayNode getItemsInAMenu(String menuTitle, int restaurantID) throws SQLException {
         return foodItemDAO.getItemsInAMenu(menuTitle,restaurantID);
+    }
+    public ArrayNode getMenusOfAnItem(int itemID) throws SQLException {
+        return foodItemDAO.getMenusOfAnItem(itemID);
+    }
+    public List<Integer> getItemIDsInARestaurant(int restaurantID) throws SQLException {
+        return foodItemDAO.getItemIDsInARestaurant(restaurantID);
     }
 }

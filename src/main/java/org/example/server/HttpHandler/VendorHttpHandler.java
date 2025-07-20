@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 public class VendorHttpHandler implements HttpHandler {
     private final FoodItemController foodItemController;
@@ -53,6 +54,9 @@ public class VendorHttpHandler implements HttpHandler {
                     menuItemsArrayNode = foodItemController.getItemsInAMenu(title,vendorID);
                     response.set(title, menuItemsArrayNode);
                     arrayNode.add(title);
+                }
+                for(int id : foodItemController.getItemIDsInARestaurant(vendorID)) {
+                    response.set(String.valueOf(id),foodItemController.getMenusOfAnItem(id));
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
