@@ -26,6 +26,7 @@ public class PaymentHttpHandler implements HttpHandler {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
         if (path.equals("/payment/online") && method.equalsIgnoreCase("POST")) {
+            System.out.println("transaction request received");
             User user = null;
             try {
                 user = JWTHandler.getUserByToken(exchange);
@@ -56,7 +57,6 @@ public class PaymentHttpHandler implements HttpHandler {
             int transactionID = -1;
             try {
                 transactionID = transactionController.saveTransaction(newTransaction);
-                System.out.println("transactionId is : "+ transactionID);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }

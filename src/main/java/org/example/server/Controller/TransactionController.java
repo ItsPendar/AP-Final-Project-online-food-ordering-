@@ -13,4 +13,7 @@ public class TransactionController {
     public int saveTransaction(Transaction transaction) throws SQLException {
         return transactionDAO.saveTransaction(transaction);
     }
+    public void updateOrderIDField(int orderID, int transactionID) throws SQLException {
+        transactionDAO.updateOrderIDField(orderID,transactionID);
+    }
 }

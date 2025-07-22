@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.server.Controller.OrderController;
+import org.example.server.Controller.TransactionController;
 import org.example.server.Util.JWTHandler;
+import org.example.server.Util.QueryHandler;
 import org.example.server.Util.ResponseHandler;
 import org.example.server.modules.*;
 import org.json.JSONArray;
@@ -18,13 +20,16 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class OrderHttpHandler implements HttpHandler {
     private final OrderController orderController;
+    private final TransactionController transactionController;
     private List<String> itemIDs = new ArrayList<>();
 
     public OrderHttpHandler() throws SQLException {
         this.orderController = new OrderController();
+        this.transactionController = new TransactionController();
     }
 
     @Override
@@ -86,7 +91,7 @@ public class OrderHttpHandler implements HttpHandler {
                 return; // Add a return statement here
             }
             if(orderID > 0){
-                //TODO : send 200 status code
+                //TODO : send 200 status code✅
                 JSONObject response = new JSONObject();
                 response.put("id", orderID);
                 response.put("delivery_address", user.getAddress());
@@ -109,10 +114,50 @@ public class OrderHttpHandler implements HttpHandler {
                 response.put("courier_id",order.getCourierID());//the order doesn't have a courier yet
 
                 ResponseHandler.sendResponse(exchange,200,response);
+                //TODO : update the orderId field in transaction table✅
+                try {
+                    transactionController.updateOrderIDField(orderID,Integer.parseInt(String.valueOf(json.get("transaction_id"))));
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
             else{
                 ResponseHandler.sendErrorResponse(exchange,500,"Internal server error : couldn't submit the order");
             }
+        }//save order✅
+        else if(path.equals("/orders/history") && requestMethod.equals("GET")) {
+            System.out.println("get history request detected");
+            try {
+                User user = JWTHandler.getUserByToken(exchange);
+                if(user == null){
+                    ResponseHandler.sendErrorResponse(exchange,401,"Unauthorized request");
+                    return;
+                }
+                if(!user.getUserRole().equals("buyer")){
+                    ResponseHandler.sendErrorResponse(exchange,403,"Forbidden request");
+                    return;
+                }
+                Map<String, String> queryParams = QueryHandler.getQueryParams(exchange.getRequestURI().getRawQuery());
+//                String search = queryParams.get("search");
+                String vendor = queryParams.get("vendor");
+                System.out.println("got here before getting orders history");
+                List<Map<String, Object>> history = orderController.getOrderHistory(JWTHandler.getUserIDByToken(exchange), null, null);
+                JSONArray response = new JSONArray();
+                for (Map<String, Object> order : history) {
+                    response.put(new JSONObject(order));
+                }
+                System.out.println("got the order history back successfully : " + response);
+                ResponseHandler.sendResponse(exchange,200,response);
+            } catch (SQLException e) {
+                ResponseHandler.sendResponse(exchange,500,"Internal server error : Couldn't fetch the order history");
+                throw new RuntimeException(e);
+            }
+        }//get history of orders
+        else if(path.matches("/orders/\\d+") && requestMethod.equals("GET")){
+            int id = Integer.parseInt(path.substring("/orders/".length()));
+        }//get details of an order
+        else{
+            ResponseHandler.sendErrorResponse(exchange,404,"Page not found");
         }
     }
 }

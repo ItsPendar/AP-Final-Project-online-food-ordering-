@@ -81,7 +81,7 @@ public class Order {
         return orderItemIDs;
     }
 
-    public void setOrderItemIDs(List<String> orderItemIDS) {
+    public void setOrderItemIDs(List<String> orderItemIDs) {
         this.orderItemIDs = orderItemIDs;
     }
 

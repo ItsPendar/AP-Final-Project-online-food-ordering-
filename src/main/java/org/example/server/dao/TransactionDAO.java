@@ -19,7 +19,7 @@ public class TransactionDAO {
     public void createTransactionTable() throws SQLException {
         String sql = """
         CREATE TABLE IF NOT EXISTS transactions (
-            transactionID SERIAL PRIMARY KEY,
+            transaction_id SERIAL PRIMARY KEY,
             order_id INTEGER,
             user_id INTEGER NOT NULL,
             tr_method VARCHAR(50) NOT NULL,
@@ -40,7 +40,7 @@ public class TransactionDAO {
         String sql = """
         INSERT INTO transactions (order_id, user_id, tr_method, status, createdAt, amount)
         VALUES (?, ?, ?, ?, ?, ?)
-        RETURNING transactionID;
+        RETURNING transaction_id;
     """;
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, transaction.getOrderID());
@@ -51,10 +51,18 @@ public class TransactionDAO {
             preparedStatement.setDouble(6, transaction.getAmount());
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
-                return rs.getInt("transactionID");
+                return rs.getInt("transaction_id");
             } else {
                 throw new SQLException("Transaction insertion failed, no ID returned.");
             }
+        }
+    }
+    public void updateOrderIDField(int orderID, int transactionID) throws SQLException {
+        String sql = "UPDATE transactions SET order_id = ? WHERE transaction_id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, orderID);
+            preparedStatement.setInt(2, transactionID);
+            preparedStatement.executeUpdate();
         }
     }
 }
