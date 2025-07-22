@@ -39,12 +39,12 @@ public class UserDAO {
             "address TEXT, " +
             "profileImage TEXT, " +
             "bank_name VARCHAR(100), " +
-            "bank_account_number VARCHAR(50)" +
-            ")"
+            "bank_account_number VARCHAR(50), " +
+            "wallet_balance REAL DEFAULT 0" +
+                    ")"
         );
         preparedStatement.executeUpdate();
     }
-
     public static void saveUser(User user) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
             "INSERT INTO users (name, phone_number, email, password, user_role, address, profileImage, bank_name, bank_account_number) " +
@@ -61,7 +61,6 @@ public class UserDAO {
         preparedStatement.setString(9, user.getBankAccountNumber());
         preparedStatement.executeUpdate();
     }
-
     public User getUserByPhoneAndPassword(String phoneNumber, String password) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
             "SELECT * FROM users WHERE phone_number = ? AND password = ?"
@@ -76,7 +75,6 @@ public class UserDAO {
         }
         return null; // User not found
     }
-
     public static String getUserRoleByUserID(String userID) {
         try {
             String query = "SELECT user_role FROM users WHERE userid = ?";
@@ -93,9 +91,6 @@ public class UserDAO {
         }
         return null;
     }
-
-
-
     public static User getUserByPhone(String phoneNumber) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE phone_number = ?");
         preparedStatement.setString(1,phoneNumber);
@@ -107,7 +102,6 @@ public class UserDAO {
         }
         return null;
     }
-
     public static User getUserByID(int userID) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
@@ -126,7 +120,6 @@ public class UserDAO {
         }
         return null; // User not found
     }
-
     private static User getUser(ResultSet resultSet, User user) throws SQLException {
         user.setName(resultSet.getString("name"));
         user.setPhoneNumber(resultSet.getString("phone_number"));
@@ -139,7 +132,6 @@ public class UserDAO {
         user.setBankAccountNumber(resultSet.getString("bank_account_number"));
         return user;
     }
-
     public boolean doesUserExistByEmail(String email) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
@@ -156,7 +148,6 @@ public class UserDAO {
         }
         return false; // User does not exist
     }
-
     public String getUserIDByPhoneNumber(String phoneNumber) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
@@ -173,7 +164,6 @@ public class UserDAO {
         }
         return null; // User not found
     }
-
     public boolean doesUserExistByPhone(String phoneNumber) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT COUNT(*) FROM users WHERE phone_number = ?"
@@ -186,9 +176,8 @@ public class UserDAO {
         }
         return false; // User does not exist
     }
-
     public static void updateUser(User user,String newPhoneNumber, String oldPhoneNumber) throws SQLException {
-        String sql = "UPDATE users SET name = ?,phone_number = ?, email = ?, address = ?, profileimage = ?, bank_name = ?, bank_account_number = ? WHERE phone_number = ?";
+        String sql = "UPDATE users SET name = ?,phone_number = ?, email = ?, address = ?, profileimage = ?, bank_name = ?, bank_account_number = ?, wallet_balance = ?  WHERE phone_number = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
         preparedStatement.setString(1, user.getName());
@@ -198,7 +187,8 @@ public class UserDAO {
         preparedStatement.setString(5,user.getProfileImage());
         preparedStatement.setString(6,user.getBankName());
         preparedStatement.setString(7,user.getBankAccountNumber());
-        preparedStatement.setString(8,oldPhoneNumber);
+        preparedStatement.setDouble(8,user.getWalletBalance());
+        preparedStatement.setString(9,oldPhoneNumber);
         preparedStatement.executeUpdate();
     }
 }

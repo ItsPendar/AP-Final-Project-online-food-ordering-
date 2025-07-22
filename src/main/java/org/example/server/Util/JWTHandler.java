@@ -2,6 +2,7 @@ package org.example.server.Util;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.Date;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -9,6 +10,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import org.example.server.Controller.RestaurantController;
+import org.example.server.Controller.UserController;
+import org.example.server.modules.User;
 
 
 public class JWTHandler {
@@ -16,6 +19,7 @@ public class JWTHandler {
             "@AmirKabirUniversity-APFinalProject";
     private static final SecretKeySpec SECRET_KEY = // same key every runtime.
             new SecretKeySpec(SECRET_PASS.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+
 
     public static String generateToken(String subject) {
         if (subject == null || subject.isEmpty()) return null;
@@ -68,5 +72,8 @@ public class JWTHandler {
         else{
             return false;
         }
+    }
+    public static  User getUserByToken(HttpExchange exchange) throws SQLException {
+        return UserController.getUserByID(getUserIDByToken(exchange));
     }
 }

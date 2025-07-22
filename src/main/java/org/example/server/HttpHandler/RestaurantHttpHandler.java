@@ -268,12 +268,10 @@ public class RestaurantHttpHandler implements HttpHandler {
             }
             else{
                 String body = new String(exchange.getRequestBody().readAllBytes());
-                //System.out.println("request body is : " + body);
                 JSONObject json = new JSONObject(body);
                 Menu newMenu = new Menu();
                 newMenu.setMenuTitle(json.getString("title"));
                 newMenu.setRestaurantID(restaurantID);
-                //System.out.println("title of the menu is : " + newMenu.getMenuTitle());
                 try {
                     if(menuController.addMenu(newMenu)) {
                         JSONObject responseBody = new JSONObject();

@@ -15,6 +15,31 @@ public class User
     private String bank_name;
     private String bank_account_number;
     private String token = "";
+    private double walletBalance = 0;
+
+
+    public double getWalletBalance() {
+        return walletBalance;
+    }
+
+    public void setWalletBalance(double walletBalance) {
+        this.walletBalance = walletBalance;
+    }
+
+
+    public User(String name, String phone_number, String email, String password, String user_role, String address, String profileImage,
+                String bank_name, String bank_account_number, double walletBalance) {
+        this.name = name;
+        this.phone_number = phone_number;
+        this.password = password;
+        this.user_role = user_role;
+        this.address = address;
+        this.email = email;
+        this.profileImage = profileImage;
+        this.bank_name = bank_name;
+        this.bank_account_number = bank_account_number;
+        this.walletBalance = walletBalance;
+    }
 
     public User(String name, String phone_number, String email, String password, String user_role, String address, String profileImage,
                 String bank_name, String bank_account_number) {
@@ -27,6 +52,7 @@ public class User
         this.profileImage = profileImage;
         this.bank_name = bank_name;
         this.bank_account_number = bank_account_number;
+        this.walletBalance = 0;
     }
 
     public User(JSONObject jsonObject){
@@ -37,7 +63,7 @@ public class User
         this.address = jsonObject.optString("address", "").trim();
         this.email = jsonObject.getString("email").trim();
         this.profileImage = jsonObject.optString("profileImageBase64", "").trim();
-
+        this.walletBalance = 0;
         JSONObject bankInfo = jsonObject.optJSONObject("bank_info");
         if (bankInfo != null) {
             this.bank_name = bankInfo.optString("bank_name", "").trim();

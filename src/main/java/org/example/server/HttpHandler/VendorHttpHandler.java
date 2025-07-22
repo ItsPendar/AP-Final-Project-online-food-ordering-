@@ -9,6 +9,7 @@ import com.sun.net.httpserver.HttpHandler;
 import org.example.server.Controller.FoodItemController;
 import org.example.server.Controller.MenuController;
 import org.example.server.Controller.UserController;
+import org.example.server.Util.ResponseHandler;
 import org.example.server.dao.RestaurantDAO;
 import org.example.server.modules.Restaurant;
 import org.example.server.modules.User;
@@ -65,10 +66,7 @@ public class VendorHttpHandler implements HttpHandler {
             sendResponse(exchange,200,response);
         }
         else{
-            String response = "Request method not allowed";
-            exchange.sendResponseHeaders(405, response.length());
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.getResponseBody().close();
+            ResponseHandler.sendErrorResponse(exchange,405 , "Request method not allowed");
         }
     }
     private int extractId(String path, String prefix, String suffix) {
