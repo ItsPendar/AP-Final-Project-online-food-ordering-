@@ -202,32 +202,58 @@ public class OrderDAO {
             o.createdAt,
             o.updatedAt,
             o.courier_id,
-            o.order_items,
-            r.name AS vendor_name
+            o.order_items
         FROM orders o
         JOIN restaurants r ON o.vendor_id = r.restaurant_id
         WHERE o.status = ?
     """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            System.out.println("status in DAO : " + status);
             stmt.setString(1, status);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    System.out.println("got in to the while loop");
                     Map<String, Object> order = new HashMap<>();
+                    System.out.println("id : " + rs.getInt("order_id"));
                     order.put("id", rs.getInt("order_id"));
+                    System.out.println("address: " + rs.getString("delivery_address"));
                     order.put("delivery_address", rs.getString("delivery_address"));
+                    System.out.println("customer id  : " + rs.getInt("customer_id"));
+
                     order.put("customer_id", rs.getInt("customer_id"));
+                    System.out.println("vendor id : " + rs.getInt("vendor_id"));
+
                     order.put("vendor_id", rs.getInt("vendor_id"));
+                    System.out.println("raw price : " + rs.getDouble("rawPrice"));
+
                     order.put("raw_price", rs.getDouble("rawPrice"));
+                    System.out.println("tax fee  : " + rs.getDouble("taxFee"));
+
                     order.put("tax_fee", rs.getDouble("taxFee"));
+                    System.out.println("courier fee : " + rs.getDouble("courierFee"));
+
                     order.put("courier_fee", rs.getDouble("courierFee"));
+                    System.out.println("additional fee : " + rs.getDouble("additionalFee"));
+
                     order.put("additional_fee", rs.getDouble("additionalFee"));
+                    System.out.println("pay price : " + rs.getDouble("payPrice"));
+
                     order.put("pay_price", rs.getDouble("payPrice"));
+                    System.out.println("status : " + rs.getString("status"));
+
                     order.put("status", rs.getString("status"));
+                    System.out.println("created at : " +  rs.getTimestamp("createdAt").toString());
+
                     order.put("created_at", rs.getTimestamp("createdAt").toString());
+                    System.out.println("updated at : " +  rs.getTimestamp("updatedAt"));
+
                     order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
                             rs.getTimestamp("updatedAt").toString() : null);
+                    System.out.println("courier id  : " + rs.getInt("courier_id"));
+
                     order.put("courier_id", rs.getObject("courier_id") != null ? rs.getInt("courier_id") : null);
-                    order.put("vendor_name", rs.getString("vendor_name"));
+                    System.out.println("order_items : " + rs.getString("order_items"));
+
                     String itemString = rs.getString("order_items");
                     List<String> itemIDs = new ArrayList<>();
                     if (itemString != null && !itemString.isEmpty()) {
@@ -302,18 +328,82 @@ public class OrderDAO {
         return result;
     }
 
-    public boolean updateOrderStatus(int orderId, String newStatus) throws SQLException {
+    public boolean updateOrderStatus(int orderId, String newStatus, int courierID) throws SQLException {
         String sql = """
         UPDATE orders
-        SET status = ?, updatedAt = CURRENT_TIMESTAMP
+        SET status = ?,courier_id = ?, updatedAt = CURRENT_TIMESTAMP
         WHERE order_id = ?
     """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, newStatus);
-            stmt.setInt(2, orderId);
+            stmt.setInt(2, courierID);
+            stmt.setInt(3, orderId);
 
             int rowsUpdated = stmt.executeUpdate();
             return rowsUpdated > 0; // return true if update was successful
         }
+    }
+
+    public List<Map<String, Object>> getOrdersByCourierId(int courierId) throws SQLException {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        String sql = """
+        SELECT 
+            o.order_id,
+            o.delivery_address,
+            o.customer_id,
+            o.vendor_id,
+            o.rawPrice,
+            o.taxFee,
+            o.courierFee,
+            o.additionalFee,
+            o.payPrice,
+            o.status,
+            o.createdAt,
+            o.updatedAt,
+            o.courier_id,
+            o.order_items
+        FROM orders o
+        JOIN restaurants r ON o.vendor_id = r.restaurant_id
+        WHERE o.courier_id = ?
+    """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            System.out.println("courier id in DAO : " + courierId);
+            stmt.setInt(1, courierId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> order = new HashMap<>();
+                    order.put("id", rs.getInt("order_id"));
+                    order.put("delivery_address", rs.getString("delivery_address"));
+                    order.put("customer_id", rs.getInt("customer_id"));
+                    order.put("vendor_id", rs.getInt("vendor_id"));
+                    order.put("raw_price", rs.getDouble("rawPrice"));
+                    order.put("tax_fee", rs.getDouble("taxFee"));
+                    order.put("courier_fee", rs.getDouble("courierFee"));
+                    order.put("additional_fee", rs.getDouble("additionalFee"));
+                    order.put("pay_price", rs.getDouble("payPrice"));
+                    order.put("status", rs.getString("status"));
+                    order.put("created_at", rs.getTimestamp("createdAt").toString());
+                    order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
+                            rs.getTimestamp("updatedAt").toString() : null);
+                    order.put("courier_id", rs.getInt("courier_id"));
+
+                    String itemString = rs.getString("order_items");
+                    List<String> itemIDs = new ArrayList<>();
+                    if (itemString != null && !itemString.isEmpty()) {
+                        for (String id : itemString.split(",")) {
+                            itemIDs.add(id.trim());
+                        }
+                    }
+                    order.put("item_ids", itemIDs);
+
+                    result.add(order);
+                }
+            }
+        }
+
+        return result;
     }
 }

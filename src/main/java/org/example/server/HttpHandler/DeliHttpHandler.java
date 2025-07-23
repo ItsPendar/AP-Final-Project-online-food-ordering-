@@ -6,11 +6,16 @@ import org.eclipse.jetty.http.HttpParser;
 import org.example.server.Util.JWTHandler;
 import org.example.server.Util.ResponseHandler;
 import org.example.server.dao.OrderDAO;
+import org.example.server.modules.Status;
 import org.example.server.modules.User;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class DeliHttpHandler implements HttpHandler {
     private final OrderDAO orderDAO;
@@ -48,8 +53,12 @@ public class DeliHttpHandler implements HttpHandler {
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
             String status = json.getString("status");
+            int courierID = -1;
+            if(user.getUserRole().equals("courier")) {
+                courierID = JWTHandler.getUserIDByToken(exchange);
+            }
             try {
-                if(orderDAO.updateOrderStatus(id,status)){
+                if(orderDAO.updateOrderStatus(id,status,courierID)){
                     ResponseHandler.sendResponse(exchange,200,"Updated the order status successfully");
                 }
                 else{
@@ -60,6 +69,39 @@ public class DeliHttpHandler implements HttpHandler {
                 throw new RuntimeException(e);
             }
         }//change status of an order
+        else if(path.matches("/deliveries/available") && method.equalsIgnoreCase("GET")){
+            System.out.println("get available deliveries request detected");
+            User user = null;
+            try {
+                user = JWTHandler.getUserByToken(exchange);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            if(user == null){
+                ResponseHandler.sendErrorResponse(exchange,401,"Unauthorized request");
+                return;
+            }
+            if(!user.getUserRole().equals("courier")){
+                ResponseHandler.sendErrorResponse(exchange,403,"Forbidden request");
+                return;
+            }
+            List<Map<String, Object>> ordersList;
+            System.out.println("got here in Deli");
+            try {
+                System.out.println("passed status : " + Status.WAITING_VENDOR.toString().toLowerCase());
+                ordersList = orderDAO.getOrdersByStatus(Status.WAITING_VENDOR.toString().toLowerCase());
+                System.out.println("successfully fetched the list of available orders");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("list of available orders : " + ordersList);
+            JSONArray response = new JSONArray();
+            for (Map<String, Object> order : ordersList) {
+                response.put(new JSONObject(order));
+            }
+            System.out.println("response to client : " + response);
+            ResponseHandler.sendResponse(exchange,200,response);
+        }
         else {
             ResponseHandler.sendErrorResponse(exchange,404,"Page not found!");
         }

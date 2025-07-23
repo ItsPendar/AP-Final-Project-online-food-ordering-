@@ -24,7 +24,10 @@ public class OrderController {
     public List<Map<String, Object>> getOrdersByVendorId(int vendorId) throws SQLException {
         return orderDAO.getOrdersByVendorId(vendorId);
     }
-    public boolean updateOrderStatus(int orderId, String newStatus) throws SQLException {
-        return orderDAO.updateOrderStatus(orderId,newStatus);
+    public boolean updateOrderStatus(int orderId, String newStatus, int courierID) throws SQLException {
+        return orderDAO.updateOrderStatus(orderId,newStatus,courierID);
+    }
+    public List<Map<String, Object>> getOrdersByCourierId(int courierId) throws SQLException {
+        return orderDAO.getOrdersByCourierId(courierId);
     }
 }

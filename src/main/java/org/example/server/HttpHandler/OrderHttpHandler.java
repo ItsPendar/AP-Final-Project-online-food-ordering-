@@ -133,22 +133,25 @@ public class OrderHttpHandler implements HttpHandler {
                     ResponseHandler.sendErrorResponse(exchange,401,"Unauthorized request");
                     return;
                 }
-                if(!user.getUserRole().equals("buyer") && !user.getUserRole().equals("seller")){
+                if(!user.getUserRole().equals("buyer") && !user.getUserRole().equals("seller") && !user.getUserRole().equals("courier")){
                     ResponseHandler.sendErrorResponse(exchange,403,"Forbidden request");
                     return;
                 }
                 Map<String, String> queryParams = QueryHandler.getQueryParams(exchange.getRequestURI().getRawQuery());
                 String search = queryParams.get("search");
                 String vendor = queryParams.get("vendor");
-                System.out.println("got here before getting orders history");
                 List<Map<String, Object>> history = new ArrayList<>();
                 int vendorID;
+                System.out.println("user role in get history : " + user.getUserRole());
                 if(user.getUserRole().equals("buyer"))
                     history = orderController.getOrderHistory(JWTHandler.getUserIDByToken(exchange), null, null);
                 else if(user.getUserRole().equals("seller")) {
                     vendorID = JWTHandler.getRestaurantIDByOwnerID(exchange);
-                    System.out.println("vendor id is : " + vendorID);
                     history = orderController.getOrdersByVendorId(vendorID);
+                }
+                else if(user.getUserRole().equals("courier")) {
+                    System.out.println("starting to get courier order history");
+                    history = orderController.getOrdersByCourierId(JWTHandler.getUserIDByToken(exchange));
                 }
                 else
                     System.out.println("user role not identified");
