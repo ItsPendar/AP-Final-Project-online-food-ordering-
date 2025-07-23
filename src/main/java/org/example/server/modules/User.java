@@ -16,6 +16,7 @@ public class User
     private String bank_account_number;
     private String token = "";
     private double walletBalance = 0;
+    private boolean is_approved;
 
 
     public double getWalletBalance() {

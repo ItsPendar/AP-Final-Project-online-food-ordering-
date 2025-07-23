@@ -192,4 +192,6 @@ public class RestaurantDAO {
         restaurant.setLogoBase64(resultSet.getString("logo_Base64"));
         return restaurant;
     }
+
+
 }

@@ -1,5 +1,7 @@
 package org.example.server.dao;
 
+import org.example.server.modules.Coupon;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;

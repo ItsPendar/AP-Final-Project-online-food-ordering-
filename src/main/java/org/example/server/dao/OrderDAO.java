@@ -406,4 +406,38 @@ public class OrderDAO {
 
         return result;
     }
+
+    public List<Order> getAllOrders() throws SQLException {
+        List<Order> orders = new ArrayList<>();
+        String query = "SELECT * FROM orders";
+
+        PreparedStatement stmt = connection.prepareStatement(query);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            Order order = new Order();
+            order.setCustomerID(rs.getInt("customer_id"));
+            order.setDeliveryAddress(rs.getString("delivery_address"));
+            order.setVendorID(rs.getInt("vendor_id"));
+            order.setCourierID(rs.getInt("courier_id"));
+            order.setRawPrice(rs.getDouble("rawprice"));
+            order.setTaxFee(rs.getDouble("taxfee"));
+            order.setCourierFee(rs.getDouble("courierfee"));
+            order.setAdditionalFee(rs.getDouble("additionalfee"));
+            order.setPayPrice(rs.getDouble("payprice"));
+            order.setStatus(rs.getString("status"));
+            order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            order.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+            String itemString = rs.getString("order_items");
+            List<String> itemIDs = new ArrayList<>();
+            if (itemString != null && !itemString.isEmpty()) {
+                for (String id : itemString.split(",")) {
+                    itemIDs.add(id.trim());
+                }
+            }
+            order.setOrderItemIDs(itemIDs);
+            orders.add(order);
+        }
+        return orders;
+    }
 }

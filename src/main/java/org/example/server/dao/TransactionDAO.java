@@ -111,5 +111,22 @@ public class TransactionDAO {
         return result;
     }
 
+    public List<Transaction> getAllTransactions() throws SQLException {
+        List<Transaction> transactions = new ArrayList<>();
+        String query = "SELECT * FROM transactions ORDER BY createdat DESC";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            Transaction transaction = new Transaction();
+            transaction.setId(rs.getInt("transactionid"));
+            transaction.setAmount(rs.getDouble("amount"));
+            transaction.setStatus(rs.getString("status"));
+            transaction.setMethod(rs.getString("tr_method"));
+            transaction.setOrder_id(rs.getInt("order_id"));
+            transaction.setUser_id(rs.getInt("user_id"));
+            transaction.setCreated_at(rs.getTimestamp("created_at").toLocalDateTime());
+        }
+        return transactions;
+    }
 }
 

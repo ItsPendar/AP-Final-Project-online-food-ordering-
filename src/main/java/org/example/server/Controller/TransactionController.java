@@ -21,4 +21,8 @@ public class TransactionController {
     public List<Map<String, Object>> getTransactionHistoryAsMapList(int userID) throws SQLException {
         return transactionDAO.getTransactionHistoryAsMapList(userID);
     }
+
+    public List<Transaction> getAllTransactions() throws SQLException {
+        return transactionDAO.getAllTransactions();
+    }
 }

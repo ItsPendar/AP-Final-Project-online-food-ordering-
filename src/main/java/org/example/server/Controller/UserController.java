@@ -1,7 +1,7 @@
 package org.example.server.Controller;
 import org.example.server.modules.User;
 import org.example.server.dao.UserDAO;
-
+import java.util.List;
 import java.sql.SQLException;
 
 public class UserController {
@@ -62,4 +62,12 @@ public class UserController {
         return getUserByID(userID).getUserRole();
     }
 
+    public List<User> getAllUsers() throws SQLException {
+        return userDAO.getAllUsers();
+    }
+
+    public void updateUserApprovalStatus(int userID, boolean approved) throws SQLException {
+        UserDAO userDAO = new UserDAO();
+        UserDAO.updateUserApprovalStatus(userID, approved);
+    }
 }

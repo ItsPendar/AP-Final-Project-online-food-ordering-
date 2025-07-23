@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.example.server.modules.User;
+import java.util.List;
+import java.util.ArrayList;
 
 public class UserDAO {
     private static Connection connection = null;
@@ -190,5 +192,29 @@ public class UserDAO {
         preparedStatement.setDouble(8,user.getWalletBalance());
         preparedStatement.setString(9,oldPhoneNumber);
         preparedStatement.executeUpdate();
+    }
+
+    public List<User> getAllUsers() throws SQLException {
+        List<User> userList = new ArrayList<>();
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users");
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            User user = new User();
+            user.setUserID(rs.getString("userid"));
+            user.setName(rs.getString("name"));
+            user.setPhoneNumber(rs.getString("phone_number"));
+            user.setEmail(rs.getString("email"));
+            user.setUserRole(rs.getString("user_role"));
+            userList.add(user);
+        }
+        return userList;
+    }
+
+    public static void updateUserApprovalStatus(int userID, boolean approved) throws SQLException {
+        String query = "UPDATE users SET is_approved = ? WHERE userid = ?";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setBoolean(1, approved);
+        stmt.setInt(2, userID);
+        stmt.executeUpdate();
     }
 }

@@ -30,4 +30,8 @@ public class OrderController {
     public List<Map<String, Object>> getOrdersByCourierId(int courierId) throws SQLException {
         return orderDAO.getOrdersByCourierId(courierId);
     }
-}
+
+    public List<Order> getAllOrders() throws SQLException {
+        return orderDAO.getAllOrders();
+    }
+ }
