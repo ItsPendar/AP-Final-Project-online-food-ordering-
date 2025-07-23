@@ -1,14 +1,80 @@
 package org.example.server.modules;
 
+import org.example.server.dao.TransactionDAO;
+
 import java.time.LocalDateTime;
 
 public class Transaction {
-    private int transactionID;
-    private int userID;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(int user_id) {
+        this.user_id = user_id;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getOrder_id() {
+        return order_id;
+    }
+
+    public void setOrder_id(int order_id) {
+        this.order_id = order_id;
+    }
+
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(LocalDateTime created_at) {
+        this.created_at = created_at;
+    }
+    private int id;
+
+    public Transaction(int id, int user_id, String method, String status, int order_id, LocalDateTime created_at, double amount) {
+        this.id = id;
+        this.user_id = user_id;
+        this.method = method;
+        this.status = status;
+        this.order_id = order_id;
+        this.created_at = created_at;
+        this.amount = amount;
+    }
+
+    public Transaction() {
+
+    }
+
+    private int user_id;
     private String method;
     private String status;
-    private int orderID;
-    private LocalDateTime createdAt;
+    private int order_id;
+    private LocalDateTime created_at;
+    private double amount;
 
     public double getAmount() {
         return amount;
@@ -16,58 +82,5 @@ public class Transaction {
 
     public void setAmount(double amount) {
         this.amount = amount;
-    }
-
-    private double amount;
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Transaction(int transactionID, int orderID, int userID, String method, String status, LocalDateTime createdAt, double amount) {
-        this.transactionID = transactionID;
-        this.orderID = orderID;
-        this.userID = userID;
-        this.method = method;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.amount = amount;
-    }
-    public Transaction() {
-
-    }
-    public int getTransactionID() {
-        return transactionID;
-    }
-    public void setTransactionID(int transactionID) {
-        this.transactionID = transactionID;
-    }
-    public int getOrderID() {
-        return orderID;
-    }
-    public void setOrderID(int orderID) {
-        this.orderID = orderID;
-    }
-    public int getUserID() {
-        return userID;
-    }
-    public void setUserID(int userID) {
-        this.userID = userID;
-    }
-    public String getMethod() {
-        return method;
-    }
-    public void setMethod(String method) {
-        this.method = method;
-    }
-    public String getStatus() {
-        return status;
-    }
-    public void setStatus(String status) {
-        this.status = status;
     }
 }

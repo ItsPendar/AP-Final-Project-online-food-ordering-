@@ -133,26 +133,37 @@ public class OrderHttpHandler implements HttpHandler {
                     ResponseHandler.sendErrorResponse(exchange,401,"Unauthorized request");
                     return;
                 }
-                if(!user.getUserRole().equals("buyer")){
+                if(!user.getUserRole().equals("buyer") && !user.getUserRole().equals("seller")){
                     ResponseHandler.sendErrorResponse(exchange,403,"Forbidden request");
                     return;
                 }
                 Map<String, String> queryParams = QueryHandler.getQueryParams(exchange.getRequestURI().getRawQuery());
-//                String search = queryParams.get("search");
+                String search = queryParams.get("search");
                 String vendor = queryParams.get("vendor");
                 System.out.println("got here before getting orders history");
-                List<Map<String, Object>> history = orderController.getOrderHistory(JWTHandler.getUserIDByToken(exchange), null, null);
+                List<Map<String, Object>> history = new ArrayList<>();
+                int vendorID;
+                if(user.getUserRole().equals("buyer"))
+                    history = orderController.getOrderHistory(JWTHandler.getUserIDByToken(exchange), null, null);
+                else if(user.getUserRole().equals("seller")) {
+                    vendorID = JWTHandler.getRestaurantIDByOwnerID(exchange);
+                    System.out.println("vendor id is : " + vendorID);
+                    history = orderController.getOrdersByVendorId(vendorID);
+                }
+                else
+                    System.out.println("user role not identified");
+
                 JSONArray response = new JSONArray();
                 for (Map<String, Object> order : history) {
                     response.put(new JSONObject(order));
                 }
-                System.out.println("got the order history back successfully : " + response);
+                System.out.println("response to client : " + response);
                 ResponseHandler.sendResponse(exchange,200,response);
             } catch (SQLException e) {
                 ResponseHandler.sendResponse(exchange,500,"Internal server error : Couldn't fetch the order history");
                 throw new RuntimeException(e);
             }
-        }//get history of orders
+        }//get history of orders✅
         else if(path.matches("/orders/\\d+") && requestMethod.equals("GET")){
             int id = Integer.parseInt(path.substring("/orders/".length()));
         }//get details of an order

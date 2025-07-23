@@ -148,6 +148,21 @@ public class RestaurantDAO {
         }
         return -1;
     }
+    public static int getRestaurantIDByOwnerID(int ownerID) {
+        try {
+            String query = "SELECT restaurant_id FROM restaurants WHERE owner_id = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setInt(1, ownerID);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Integer.parseInt(rs.getString("restaurant_id"));
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 
     public static Restaurant getRestaurantByID(int restaurantID) {
         try {

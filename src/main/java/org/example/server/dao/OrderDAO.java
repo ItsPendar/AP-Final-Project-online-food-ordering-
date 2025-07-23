@@ -98,7 +98,6 @@ public class OrderDAO {
     }
     public List<Map<String, Object>> getOrderHistory(int userID, String search, String vendor) throws SQLException {
         List<Map<String, Object>> result = new ArrayList<>();
-
         String sql = """
         SELECT 
             o.order_id,
@@ -186,5 +185,135 @@ public class OrderDAO {
         }
     }
 
+    public List<Map<String, Object>> getOrdersByStatus(String status) throws SQLException {
+        List<Map<String, Object>> result = new ArrayList<>();
+        String sql = """
+        SELECT 
+            o.order_id,
+            o.delivery_address,
+            o.customer_id,
+            o.vendor_id,
+            o.rawPrice,
+            o.taxFee,
+            o.courierFee,
+            o.additionalFee,
+            o.payPrice,
+            o.status,
+            o.createdAt,
+            o.updatedAt,
+            o.courier_id,
+            o.order_items,
+            r.name AS vendor_name
+        FROM orders o
+        JOIN restaurants r ON o.vendor_id = r.restaurant_id
+        WHERE o.status = ?
+    """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, status);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> order = new HashMap<>();
+                    order.put("id", rs.getInt("order_id"));
+                    order.put("delivery_address", rs.getString("delivery_address"));
+                    order.put("customer_id", rs.getInt("customer_id"));
+                    order.put("vendor_id", rs.getInt("vendor_id"));
+                    order.put("raw_price", rs.getDouble("rawPrice"));
+                    order.put("tax_fee", rs.getDouble("taxFee"));
+                    order.put("courier_fee", rs.getDouble("courierFee"));
+                    order.put("additional_fee", rs.getDouble("additionalFee"));
+                    order.put("pay_price", rs.getDouble("payPrice"));
+                    order.put("status", rs.getString("status"));
+                    order.put("created_at", rs.getTimestamp("createdAt").toString());
+                    order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
+                            rs.getTimestamp("updatedAt").toString() : null);
+                    order.put("courier_id", rs.getObject("courier_id") != null ? rs.getInt("courier_id") : null);
+                    order.put("vendor_name", rs.getString("vendor_name"));
+                    String itemString = rs.getString("order_items");
+                    List<String> itemIDs = new ArrayList<>();
+                    if (itemString != null && !itemString.isEmpty()) {
+                        for (String id : itemString.split(",")) {
+                            itemIDs.add(id.trim());
+                        }
+                    }
+                    order.put("item_ids", itemIDs);
+                    result.add(order);
+                }
+            }
+        }
+        return result;
+    }
 
+    public List<Map<String, Object>> getOrdersByVendorId(int vendorId) throws SQLException {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        String sql = """
+        SELECT 
+            o.order_id,
+            o.delivery_address,
+            o.customer_id,
+            o.vendor_id,
+            o.rawPrice,
+            o.taxFee,
+            o.courierFee,
+            o.additionalFee,
+            o.payPrice,
+            o.status,
+            o.createdAt,
+            o.updatedAt,
+            o.courier_id,
+            o.order_items
+        FROM orders o
+        JOIN restaurants r ON o.vendor_id = r.restaurant_id
+        WHERE o.vendor_id = ?
+    """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, vendorId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> order = new HashMap<>();
+                    order.put("id", rs.getInt("order_id"));
+                    order.put("delivery_address", rs.getString("delivery_address"));
+                    order.put("customer_id", rs.getInt("customer_id"));
+                    order.put("vendor_id", rs.getInt("vendor_id"));
+                    order.put("raw_price", rs.getDouble("rawPrice"));
+                    order.put("tax_fee", rs.getDouble("taxFee"));
+                    order.put("courier_fee", rs.getDouble("courierFee"));
+                    order.put("additional_fee", rs.getDouble("additionalFee"));
+                    order.put("pay_price", rs.getDouble("payPrice"));
+                    order.put("status", rs.getString("status"));
+                    order.put("created_at", rs.getTimestamp("createdAt").toString());
+                    order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
+                            rs.getTimestamp("updatedAt").toString() : null);
+                    order.put("courier_id", rs.getObject("courier_id") != null ? rs.getInt("courier_id") : null);
+
+                    String itemString = rs.getString("order_items");
+                    List<String> itemIDs = new ArrayList<>();
+                    if (itemString != null && !itemString.isEmpty()) {
+                        for (String id : itemString.split(",")) {
+                            itemIDs.add(id.trim());
+                        }
+                    }
+                    order.put("item_ids", itemIDs);
+                    result.add(order);
+                }
+            }
+        }
+        return result;
+    }
+
+    public boolean updateOrderStatus(int orderId, String newStatus) throws SQLException {
+        String sql = """
+        UPDATE orders
+        SET status = ?, updatedAt = CURRENT_TIMESTAMP
+        WHERE order_id = ?
+    """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, newStatus);
+            stmt.setInt(2, orderId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0; // return true if update was successful
+        }
+    }
 }

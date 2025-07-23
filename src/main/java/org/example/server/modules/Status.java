@@ -5,7 +5,6 @@ public enum Status {
     UNPAID_AND_CANCELED,
     WAITING_VENDOR,
     CANCELED,
-    FINDING_COURIER,
-    ON_THE_WAY,
+    UNKNOWN,
     COMPLETED
 }

@@ -48,11 +48,11 @@ public class PaymentHttpHandler implements HttpHandler {
             //TODO : create a transaction object and save it into the table in DB and get transactionID back✅
             Transaction newTransaction = new Transaction();
             newTransaction.setMethod(paymentMethod);
-            newTransaction.setOrderID(-1);
+            newTransaction.setOrder_id(-1);
             newTransaction.setStatus("success");
             newTransaction.setAmount(json.getDouble("amount"));
-            newTransaction.setCreatedAt(LocalDateTime.now());
-            newTransaction.setUserID(JWTHandler.getUserIDByToken(exchange));
+            newTransaction.setCreated_at(LocalDateTime.now());
+            newTransaction.setUser_id(JWTHandler.getUserIDByToken(exchange));
             /// save the transaction
             int transactionID = -1;
             try {

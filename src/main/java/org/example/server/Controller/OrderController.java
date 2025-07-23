@@ -18,4 +18,13 @@ public class OrderController {
     public List<Map<String, Object>> getOrderHistory(int userID, String search, String vendor) throws SQLException {
         return orderDAO.getOrderHistory(userID,search,vendor);
     }
+    public List<Map<String, Object>> getOrdersByStatus(String status) throws SQLException {
+        return orderDAO.getOrdersByStatus(status);
+    }
+    public List<Map<String, Object>> getOrdersByVendorId(int vendorId) throws SQLException {
+        return orderDAO.getOrdersByVendorId(vendorId);
+    }
+    public boolean updateOrderStatus(int orderId, String newStatus) throws SQLException {
+        return orderDAO.updateOrderStatus(orderId,newStatus);
+    }
 }

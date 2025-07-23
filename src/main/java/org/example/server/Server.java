@@ -26,6 +26,8 @@ public class Server {
         server.createContext("/wallet", new WalletHttpHandler());
         server.createContext("/payment", new PaymentHttpHandler());
         server.createContext("/orders", new OrderHttpHandler());
+        server.createContext("/transactions", new TransactionHttpHandler());
+        server.createContext("/deliveries", new DeliHttpHandler());
         server.setExecutor(null);
         server.start();
         System.out.println("Server is running at: " + server.getAddress());

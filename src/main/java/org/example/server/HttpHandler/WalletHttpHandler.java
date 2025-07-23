@@ -32,8 +32,8 @@ public class WalletHttpHandler implements HttpHandler {
                 return;
             }
             Transaction transaction = new Transaction();
-            transaction.setUserID(userID);
-            transaction.setCreatedAt(LocalDateTime.now());
+            transaction.setUser_id(userID);
+            transaction.setCreated_at(LocalDateTime.now());
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
             if(json.get("amount") == null) {
@@ -47,7 +47,7 @@ public class WalletHttpHandler implements HttpHandler {
             //TODO : update the user after updating the balance using UserDAO
             transaction.setAmount(amount);
             transaction.setStatus("Success");
-            transaction.setOrderID(0);
+            transaction.setOrder_id(0);
             ResponseHandler.sendResponse(exchange,200,"Wallet charged up successfully");
             //TODO : save the transaction using TransactionDAO
             try {

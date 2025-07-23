@@ -63,7 +63,6 @@ public class JWTHandler {
     }
     public static boolean doesUserOwnRestaurant(HttpExchange exchange, int restaurantID) {
         int userID = getUserIDByToken(exchange);
-        System.out.println("userID : " + userID);
         int restaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
         System.out.println("ownerID : " + restaurantOwnerID);
         if(restaurantOwnerID == userID) {
@@ -72,6 +71,10 @@ public class JWTHandler {
         else{
             return false;
         }
+    }
+    public static int getRestaurantIDByOwnerID(HttpExchange exchange) {
+        int userID = getUserIDByToken(exchange);
+        return RestaurantController.getRestaurantIDByOwnerID(userID);
     }
     public static  User getUserByToken(HttpExchange exchange) throws SQLException {
         return UserController.getUserByID(getUserIDByToken(exchange));

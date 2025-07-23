@@ -4,6 +4,8 @@ import org.example.server.dao.TransactionDAO;
 import org.example.server.modules.Transaction;
 
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 public class TransactionController {
     private static TransactionDAO transactionDAO = null;
@@ -15,5 +17,8 @@ public class TransactionController {
     }
     public void updateOrderIDField(int orderID, int transactionID) throws SQLException {
         transactionDAO.updateOrderIDField(orderID,transactionID);
+    }
+    public List<Map<String, Object>> getTransactionHistoryAsMapList(int userID) throws SQLException {
+        return transactionDAO.getTransactionHistoryAsMapList(userID);
     }
 }
