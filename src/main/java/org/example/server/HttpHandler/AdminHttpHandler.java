@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.server.Controller.OrderController;
+import org.example.server.Controller.TransactionController;
 import org.example.server.Controller.UserController;
+import org.example.server.Util.ResponseHandler;
 import org.example.server.dao.DatabaseConnectionManager;
 import org.example.server.dao.TransactionDAO;
 import org.example.server.dao.UserDAO;
@@ -20,16 +22,25 @@ import org.example.server.modules.Order;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class AdminHttpHandler implements HttpHandler {
+    private final UserController userController;
+    private final OrderController orderController;
+    private final TransactionController transactionController;
+    public AdminHttpHandler() throws SQLException {
+        userController = new UserController();
+        transactionController = new TransactionController();
+        orderController = new OrderController();
+    }
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
         String[] pathParts = path.split("/");
 
-        // بررسی JWT و نقش ADMIN
         String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             sendError(exchange, 401, "Missing or invalid token.");
@@ -53,36 +64,63 @@ public class AdminHttpHandler implements HttpHandler {
 
         if (method.equalsIgnoreCase("GET") && path.equals("/admin/users")) {
             handleGetAllUsers(exchange);
-        } else if (method.equalsIgnoreCase("GET") && path.equals("/admin/orders")) {
+        }//get all users✅
+        else if (method.equalsIgnoreCase("GET") && path.equals("/admin/orders")) {
+            System.out.println("get all orders request detected");
             handleGetAllOrders(exchange);
-        } else if (method.equalsIgnoreCase("PUT") && pathParts.length == 5 && pathParts[1].equals("admin") && pathParts[2].equals("users") && pathParts[4].equals("status")) {
+        }//get all orders✅
+        else if (method.equalsIgnoreCase("PUT") && pathParts.length == 5 && pathParts[1].equals("admin") && pathParts[2].equals("users") && pathParts[4].equals("status")) {
             try {
-                System.out.println(pathParts[3]);
+                System.out.println("user id : " + pathParts[3]);
                 int userId = Integer.parseInt(pathParts[3]);
-                System.out.println(userId);
-                handleUpdateUserStatus(exchange, userId);
+                String body = new String(exchange.getRequestBody().readAllBytes());
+                JSONObject json = new JSONObject(body);
+                boolean status = json.getBoolean("status");
+                System.out.println("status : " + status);
+                userController.setUserApprovalStatus(userId,status);
+                ResponseHandler.sendResponse(exchange,200,"status updated successfully");
+                //handleUpdateUserStatus(exchange, userId);
             }
             catch (NumberFormatException e) {
                 sendError(exchange, 400, "Invalid user ID in URL");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-        } else if (method.equalsIgnoreCase("GET") && path.equals("/admin/transactions")) {
+        }//update user admission✅
+        else if (method.equalsIgnoreCase("GET") && path.equals("/admin/transactions")) {
             handleGetAllTransactions(exchange);
-        } else {
+        }//get all transactions✅
+        else if (method.equalsIgnoreCase("DELETE") && path.equals("/admin/delete")) {
+            String body = new String(exchange.getRequestBody().readAllBytes());
+            JSONObject json = new JSONObject(body);
+            int id = json.getInt("id");
+            try {
+                userController.deleteUserByID(id);
+                ResponseHandler.sendResponse(exchange,200,"User deleted successfully");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }//delete a user✅
+        else {
             sendError(exchange, 404, "Endpoint not found.");
         }
     }
 
     private void handleGetAllUsers(HttpExchange exchange) throws IOException {
         try {
-            List<User> users = new UserController().getAllUsers();
+            List<User> users = userController.getAllUsers();
             JSONArray usersJson = new JSONArray();
             for (User user : users) {
                 JSONObject userJson = new JSONObject();
                 userJson.put("id", user.getUserID());
                 userJson.put("name", user.getName());
                 userJson.put("phone", user.getPhoneNumber());
-                userJson.put("role", user.getUserRole());
+                userJson.put("user_role", user.getUserRole());
                 userJson.put("email", user.getEmail());
+                userJson.put("address", user.getAddress());
+                userJson.put("profileImageBase64", user.getProfileImage());
+                System.out.println("user status in admin http handler : " + user.getIs_approved());
+                userJson.put("is_approved", user.getIs_approved());
                 usersJson.put(userJson);
             }
             byte[] response = usersJson.toString().getBytes();
@@ -96,71 +134,61 @@ public class AdminHttpHandler implements HttpHandler {
 
     private void handleGetAllOrders(HttpExchange exchange) throws IOException {
         try {
-            List<Order> orders = new OrderController().getAllOrders();
-            JSONArray ordersJson = new JSONArray();
-            for (Order order : orders) {
-                JSONObject orderJson = new JSONObject();
-                orderJson.put("customerid", order.getCustomerID());
-                orderJson.put("deliveryAddress", order.getDeliveryAddress());
-                orderJson.put("vendorid" , order.getVendorID());
-                orderJson.put("courierid", order.getCourierID());
-                orderJson.put("orderItemIDs", order.getOrderItemIDs());
-                orderJson.put("rawPrice", order.getRawPrice());
-                orderJson.put("taxFee", order.getTaxFee());
-                orderJson.put("courierFee", order.getCourierFee());
-                orderJson.put("additionalFee", order.getAdditionalFee());
-                orderJson.put("payPrice", order.getPayPrice());
-                orderJson.put("status", order.getStatus());
-                orderJson.put("createdAt", order.getCreatedAt());
-                orderJson.put("updatedAt", order.getUpdatedAt());
+            List<Map<String, Object>> history;
+            history = orderController.getAllOrdersAsMapList();
+            JSONArray response = new JSONArray();
+            for (Map<String, Object> order : history) {
+                response.put(new JSONObject(order));
             }
-            byte[] response = ordersJson.toString().getBytes();
-            exchange.sendResponseHeaders(200, response.length);
-            exchange.getResponseBody().write(response);
-            exchange.getResponseBody().close();
-        } catch (Exception e) {
-            sendError(exchange, 500, "Server error: " + e.getMessage());
+            System.out.println("list of all orders : " + response);
+            ResponseHandler.sendResponse(exchange,200,response);
         }
-    }
 
-    private void handleUpdateUserStatus(HttpExchange exchange ,int userId) throws IOException {
-        System.out.println("Check2");
-        try {
-        String body = new String(exchange.getRequestBody().readAllBytes());
-        JSONObject json = new JSONObject(body);
-        boolean approved = json.getBoolean("approved");
-
-        UserController userController = new UserController();
-        userController.updateUserApprovalStatus(userId, approved);
-
-        JSONObject response = new JSONObject();
-        response.put("message", "User Approval status updated");
-
-        byte[] responseBytes = response.toString().getBytes();
-        exchange.sendResponseHeaders(200,responseBytes.length);
-        exchange.getResponseBody().write(responseBytes);
-        exchange.getResponseBody().close();
-        } catch (Exception e) {
-            sendError(exchange, 500 , "Server error: " + e.getMessage());
+//        try {
+//            List<Order> orders = new OrderController().getAllOrders();
+//            JSONArray ordersJson = new JSONArray();
+//            for (Order order : orders) {
+//                JSONObject orderJson = new JSONObject();
+//                orderJson.put("customer_id", order.getCustomerID());
+//                orderJson.put("delivery_address", order.getDeliveryAddress());
+//                orderJson.put("vendor_id" , order.getVendorID());
+//                orderJson.put("courier_id", order.getCourierID());
+//                orderJson.put("item_ids", order.getOrderItemIDs());
+//                orderJson.put("raw_price", order.getRawPrice());
+//                orderJson.put("tax_fee", order.getTaxFee());
+//                orderJson.put("courier_fee", order.getCourierFee());
+//                orderJson.put("additional_fee", order.getAdditionalFee());
+//                orderJson.put("pay_price", order.getPayPrice());
+//                orderJson.put("status", order.getStatus());
+//                orderJson.put("created_at", order.getCreatedAt());
+//                orderJson.put("updated_at", order.getUpdatedAt());
+//            }
+//            byte[] response = ordersJson.toString().getBytes();
+//            exchange.sendResponseHeaders(200, response.length);
+//            exchange.getResponseBody().write(response);
+//            exchange.getResponseBody().close();
+        catch (Exception e) {
+            sendError(exchange, 500, "Server error: " + e.getMessage());
         }
     }
 
     private void handleGetAllTransactions(HttpExchange exchange) throws IOException {
         try {
-            TransactionDAO transactionDAO = new TransactionDAO();
-            List<Transaction> transactions = transactionDAO.getAllTransactions();
-            ObjectMapper objectMapper = new ObjectMapper();
-            String response = objectMapper.writeValueAsString(transactions);
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200,response.getBytes().length);
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.getResponseBody().close();
+            List<Map<String, Object>> history ;
+            history = transactionController.getAllTransactionsAsMapList();
+            JSONArray response = new JSONArray();
+            for (Map<String, Object> order : history) {
+                response.put(new JSONObject(order));
+            }
+            System.out.println("list of all transactions : " + response);
+            ResponseHandler.sendResponse(exchange,200,response);
         }
         catch (SQLException e) {
             e.printStackTrace();
             sendError(exchange, 500, e.getMessage());
         }
     }
+
     private void sendError(HttpExchange exchange, int statusCode, String message) throws IOException {
         JSONObject errorJson = new JSONObject();
         errorJson.put("error", message);

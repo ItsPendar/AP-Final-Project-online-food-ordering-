@@ -42,15 +42,16 @@ public class UserDAO {
             "profileImage TEXT, " +
             "bank_name VARCHAR(100), " +
             "bank_account_number VARCHAR(50), " +
-            "wallet_balance REAL DEFAULT 0" +
+            "wallet_balance REAL DEFAULT 0, " +
+            "is_approved BOOLEAN DEFAULT FALSE" +
                     ")"
         );
         preparedStatement.executeUpdate();
     }
     public static void saveUser(User user) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-            "INSERT INTO users (name, phone_number, email, password, user_role, address, profileImage, bank_name, bank_account_number) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO users (name, phone_number, email, password, user_role, address, profileImage, bank_name, bank_account_number, is_approved) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         preparedStatement.setString(1, user.getName());
         preparedStatement.setString(2, user.getPhoneNumber());
@@ -61,15 +62,16 @@ public class UserDAO {
         preparedStatement.setString(7, user.getProfileImage());
         preparedStatement.setString(8, user.getBankName());
         preparedStatement.setString(9, user.getBankAccountNumber());
+        preparedStatement.setBoolean(10, false);
         preparedStatement.executeUpdate();
     }
+
     public User getUserByPhoneAndPassword(String phoneNumber, String password) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
             "SELECT * FROM users WHERE phone_number = ? AND password = ?"
         );
         preparedStatement.setString(1, phoneNumber);
         preparedStatement.setString(2, password);
-
         var resultSet = preparedStatement.executeQuery();
         if (resultSet.next()) {
             User user = new User();
@@ -77,6 +79,24 @@ public class UserDAO {
         }
         return null; // User not found
     }
+
+    public void setUserApprovalStatus(int userID, boolean isApproved) throws SQLException {
+        String query = "UPDATE users SET is_approved = ? WHERE userid = ?";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setBoolean(1, isApproved);
+        System.out.println("status in DAO : " + isApproved);
+        stmt.setInt(2, userID);
+        System.out.println("userID in DAO : " + userID);
+        stmt.executeUpdate();
+    }
+
+    public void deleteUserByID(int userID) throws SQLException {
+        String query = "DELETE FROM users WHERE userid = ?";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setInt(1, userID);
+        stmt.executeUpdate();
+    }
+
     public static String getUserRoleByUserID(String userID) {
         try {
             String query = "SELECT user_role FROM users WHERE userid = ?";
@@ -93,6 +113,7 @@ public class UserDAO {
         }
         return null;
     }
+
     public static User getUserByPhone(String phoneNumber) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE phone_number = ?");
         preparedStatement.setString(1,phoneNumber);
@@ -104,6 +125,7 @@ public class UserDAO {
         }
         return null;
     }
+
     public static User getUserByID(int userID) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
@@ -122,6 +144,7 @@ public class UserDAO {
         }
         return null; // User not found
     }
+
     private static User getUser(ResultSet resultSet, User user) throws SQLException {
         user.setName(resultSet.getString("name"));
         user.setPhoneNumber(resultSet.getString("phone_number"));
@@ -132,8 +155,10 @@ public class UserDAO {
         user.setProfileImage(resultSet.getString("profileImage"));
         user.setBankName(resultSet.getString("bank_name"));
         user.setBankAccountNumber(resultSet.getString("bank_account_number"));
+        user.setIs_approved(resultSet.getBoolean("is_approved"));
         return user;
     }
+
     public boolean doesUserExistByEmail(String email) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
@@ -150,6 +175,7 @@ public class UserDAO {
         }
         return false; // User does not exist
     }
+
     public String getUserIDByPhoneNumber(String phoneNumber) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
@@ -205,16 +231,11 @@ public class UserDAO {
             user.setPhoneNumber(rs.getString("phone_number"));
             user.setEmail(rs.getString("email"));
             user.setUserRole(rs.getString("user_role"));
-            userList.add(user);
+            user.setIs_approved(rs.getBoolean("is_approved"));
+            if (!user.getName().equals("Admin")){
+                userList.add(user);
+            }
         }
         return userList;
-    }
-
-    public static void updateUserApprovalStatus(int userID, boolean approved) throws SQLException {
-        String query = "UPDATE users SET is_approved = ? WHERE userid = ?";
-        PreparedStatement stmt = connection.prepareStatement(query);
-        stmt.setBoolean(1, approved);
-        stmt.setInt(2, userID);
-        stmt.executeUpdate();
     }
 }

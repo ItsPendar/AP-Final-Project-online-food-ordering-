@@ -36,21 +36,26 @@ public class LoginUserHttpHandler implements HttpHandler {
                     String password = requestBody.getString("password");
                     // checking the user credentials against the database
                     if (UserController.doesUserExist(phoneNumber)) {
-                        if (UserController.getUserByPhoneAndPassword(phoneNumber, password) == null) {
+                        User loggedInUser = UserController.getUserByPhoneAndPassword(phoneNumber, password);
+                        if (loggedInUser == null) {
                             sendErrorMessage(exchange, 401, "Incorrect password. Please check your password.");
                         }
                         else {
-                            // If user exists, send success response
-                            User loggedInUser = UserController.getUserByPhoneAndPassword(phoneNumber, password);
-                            JSONObject user = getJsonObject(loggedInUser);
-                            responseJson.put("message", "You successfully logged in!");
-                            responseJson.put("token", JWTHandler.generateToken(UserController.getUserIDByPhoneNumber(phoneNumber)));
-                            responseJson.put("user",user);
-                            System.out.println("User ID : " + UserController.getUserIDByPhoneNumber(phoneNumber));
-                            byte[] responseBytes = responseJson.toString().getBytes(StandardCharsets.UTF_8);
-                            exchange.getResponseHeaders().set("Content-Type", "application/json");
-                            exchange.sendResponseHeaders(200, responseBytes.length);
-                            exchange.getResponseBody().write(responseBytes);
+                            if (!loggedInUser.getIs_approved()) {
+                                sendErrorMessage(exchange, 401, "User isn't accepted by the Admin yet!");
+                            }
+                            else{
+                                // If user exists and is approved, send success response
+                                JSONObject user = getJsonObject(loggedInUser);
+                                responseJson.put("message", "You successfully logged in!");
+                                responseJson.put("token", JWTHandler.generateToken(UserController.getUserIDByPhoneNumber(phoneNumber)));
+                                responseJson.put("user",user);
+                                System.out.println("User ID : " + UserController.getUserIDByPhoneNumber(phoneNumber));
+                                byte[] responseBytes = responseJson.toString().getBytes(StandardCharsets.UTF_8);
+                                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                                exchange.sendResponseHeaders(200, responseBytes.length);
+                                exchange.getResponseBody().write(responseBytes);
+                            }
                         }
                     } else {
                         sendErrorMessage(exchange, 401, "User does not exist. Please check your phone number or try signing up.");
@@ -80,6 +85,7 @@ public class LoginUserHttpHandler implements HttpHandler {
         user.put("address", loggedInUser.getAddress());
         user.put("profileImageBase64", loggedInUser.getProfileImage() != null ? loggedInUser.getProfileImage() : "");
         user.put("bank_info", bankInfo);
+        user.put("is_approved", loggedInUser.getIs_approved());
         return user;
     }
 

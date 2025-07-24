@@ -407,37 +407,62 @@ public class OrderDAO {
         return result;
     }
 
-    public List<Order> getAllOrders() throws SQLException {
-        List<Order> orders = new ArrayList<>();
-        String query = "SELECT * FROM orders";
+    public List<Map<String, Object>> getAllOrdersAsMapList() throws SQLException {
+        List<Map<String, Object>> result = new ArrayList<>();
 
-        PreparedStatement stmt = connection.prepareStatement(query);
-        ResultSet rs = stmt.executeQuery();
+        String sql = """
+        SELECT 
+            o.order_id,
+            o.delivery_address,
+            o.customer_id,
+            o.vendor_id,
+            o.rawPrice,
+            o.taxFee,
+            o.courierFee,
+            o.additionalFee,
+            o.payPrice,
+            o.status,
+            o.createdAt,
+            o.updatedAt,
+            o.courier_id,
+            o.order_items
+        FROM orders o
+        JOIN restaurants r ON o.vendor_id = r.restaurant_id
+    """;
 
-        while (rs.next()) {
-            Order order = new Order();
-            order.setCustomerID(rs.getInt("customer_id"));
-            order.setDeliveryAddress(rs.getString("delivery_address"));
-            order.setVendorID(rs.getInt("vendor_id"));
-            order.setCourierID(rs.getInt("courier_id"));
-            order.setRawPrice(rs.getDouble("rawprice"));
-            order.setTaxFee(rs.getDouble("taxfee"));
-            order.setCourierFee(rs.getDouble("courierfee"));
-            order.setAdditionalFee(rs.getDouble("additionalfee"));
-            order.setPayPrice(rs.getDouble("payprice"));
-            order.setStatus(rs.getString("status"));
-            order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-            order.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-            String itemString = rs.getString("order_items");
-            List<String> itemIDs = new ArrayList<>();
-            if (itemString != null && !itemString.isEmpty()) {
-                for (String id : itemString.split(",")) {
-                    itemIDs.add(id.trim());
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Map<String, Object> order = new HashMap<>();
+                order.put("id", rs.getInt("order_id"));
+                order.put("delivery_address", rs.getString("delivery_address"));
+                order.put("customer_id", rs.getInt("customer_id"));
+                order.put("vendor_id", rs.getInt("vendor_id"));
+                order.put("raw_price", rs.getDouble("rawPrice"));
+                order.put("tax_fee", rs.getDouble("taxFee"));
+                order.put("courier_fee", rs.getDouble("courierFee"));
+                order.put("additional_fee", rs.getDouble("additionalFee"));
+                order.put("pay_price", rs.getDouble("payPrice"));
+                order.put("status", rs.getString("status"));
+                order.put("created_at", rs.getTimestamp("createdAt").toString());
+                order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
+                        rs.getTimestamp("updatedAt").toString() : null);
+                order.put("courier_id", rs.getObject("courier_id") != null ? rs.getInt("courier_id") : null);
+
+                String itemString = rs.getString("order_items");
+                List<String> itemIDs = new ArrayList<>();
+                if (itemString != null && !itemString.isEmpty()) {
+                    for (String id : itemString.split(",")) {
+                        itemIDs.add(id.trim());
+                    }
                 }
+                order.put("item_ids", itemIDs);
+
+                result.add(order);
             }
-            order.setOrderItemIDs(itemIDs);
-            orders.add(order);
         }
-        return orders;
+
+        return result;
     }
+
 }

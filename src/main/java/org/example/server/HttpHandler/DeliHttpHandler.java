@@ -86,7 +86,6 @@ public class DeliHttpHandler implements HttpHandler {
                 return;
             }
             List<Map<String, Object>> ordersList;
-            System.out.println("got here in Deli");
             try {
                 System.out.println("passed status : " + Status.WAITING_VENDOR.toString().toLowerCase());
                 ordersList = orderDAO.getOrdersByStatus(Status.WAITING_VENDOR.toString().toLowerCase());

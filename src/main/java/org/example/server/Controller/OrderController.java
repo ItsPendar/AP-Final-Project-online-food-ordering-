@@ -31,7 +31,7 @@ public class OrderController {
         return orderDAO.getOrdersByCourierId(courierId);
     }
 
-    public List<Order> getAllOrders() throws SQLException {
-        return orderDAO.getAllOrders();
+    public List<Map<String, Object>> getAllOrdersAsMapList() throws SQLException {
+        return orderDAO.getAllOrdersAsMapList();
     }
  }

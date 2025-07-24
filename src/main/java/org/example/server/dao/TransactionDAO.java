@@ -94,7 +94,7 @@ public class TransactionDAO {
                 System.out.println("orderID : " + rs.getInt("order_id"));
                 transactionMap.put("user_id", rs.getInt("user_id"));
                 System.out.println("useRID : " + rs.getInt("user_id"));
-                transactionMap.put("method", rs.getString("tr_method"));
+                transactionMap.put("tr_method", rs.getString("tr_method"));
                 System.out.println("method : " +rs.getString("tr_method") );
                 transactionMap.put("status", rs.getString("status"));
                 System.out.println("status : " + rs.getString("status"));
@@ -111,22 +111,33 @@ public class TransactionDAO {
         return result;
     }
 
-    public List<Transaction> getAllTransactions() throws SQLException {
-        List<Transaction> transactions = new ArrayList<>();
-        String query = "SELECT * FROM transactions ORDER BY createdat DESC";
-        PreparedStatement stmt = connection.prepareStatement(query);
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
-            Transaction transaction = new Transaction();
-            transaction.setId(rs.getInt("transactionid"));
-            transaction.setAmount(rs.getDouble("amount"));
-            transaction.setStatus(rs.getString("status"));
-            transaction.setMethod(rs.getString("tr_method"));
-            transaction.setOrder_id(rs.getInt("order_id"));
-            transaction.setUser_id(rs.getInt("user_id"));
-            transaction.setCreated_at(rs.getTimestamp("created_at").toLocalDateTime());
+    public List<Map<String, Object>> getAllTransactionsAsMapList() throws SQLException {
+        String sql = """
+        SELECT transaction_id, order_id, user_id, tr_method, status, created_at, amount
+        FROM transactions
+        ORDER BY created_at DESC;
+    """;
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet rs = preparedStatement.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> transactionMap = new HashMap<>();
+                transactionMap.put("id", rs.getInt("transaction_id"));
+                transactionMap.put("order_id", rs.getInt("order_id"));
+                transactionMap.put("user_id", rs.getInt("user_id"));
+                transactionMap.put("tr_method", rs.getString("tr_method"));
+                transactionMap.put("status", rs.getString("status"));
+                transactionMap.put("created_at", rs.getTimestamp("created_at").toString());
+                transactionMap.put("amount", rs.getDouble("amount"));
+                result.add(transactionMap);
+            }
         }
-        return transactions;
+
+        return result;
     }
+
 }
 

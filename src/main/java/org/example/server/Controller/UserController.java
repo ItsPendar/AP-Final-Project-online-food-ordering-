@@ -22,6 +22,14 @@ public class UserController {
 
     }
 
+    public void setUserApprovalStatus(int userID, boolean isApproved) throws SQLException {
+        userDAO.setUserApprovalStatus(userID, isApproved);
+    }
+
+    public void deleteUserByID(int userID) throws SQLException {
+        userDAO.deleteUserByID(userID);
+    }
+
     public static User getUserByPhone(String phone) throws SQLException {
         UserDAO userDAO = new UserDAO();
         return UserDAO.getUserByPhone(phone);
@@ -64,10 +72,5 @@ public class UserController {
 
     public List<User> getAllUsers() throws SQLException {
         return userDAO.getAllUsers();
-    }
-
-    public void updateUserApprovalStatus(int userID, boolean approved) throws SQLException {
-        UserDAO userDAO = new UserDAO();
-        UserDAO.updateUserApprovalStatus(userID, approved);
     }
 }

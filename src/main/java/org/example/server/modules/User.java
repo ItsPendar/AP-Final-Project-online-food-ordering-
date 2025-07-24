@@ -18,6 +18,13 @@ public class User
     private double walletBalance = 0;
     private boolean is_approved;
 
+    public boolean getIs_approved() {
+        return is_approved;
+    }
+
+    public void setIs_approved(boolean is_approved) {
+        this.is_approved = is_approved;
+    }
 
     public double getWalletBalance() {
         return walletBalance;

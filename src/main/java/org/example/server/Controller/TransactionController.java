@@ -22,7 +22,7 @@ public class TransactionController {
         return transactionDAO.getTransactionHistoryAsMapList(userID);
     }
 
-    public List<Transaction> getAllTransactions() throws SQLException {
-        return transactionDAO.getAllTransactions();
+    public List<Map<String, Object>> getAllTransactionsAsMapList() throws SQLException {
+        return transactionDAO.getAllTransactionsAsMapList();
     }
 }

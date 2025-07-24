@@ -29,10 +29,7 @@ public class Server {
         server.createContext("/transactions", new TransactionHttpHandler());
         server.createContext("/deliveries", new DeliHttpHandler());
         server.createContext("/admin", new AdminHttpHandler());
-//        server.createContext("/admin/users", new AdminHttpHandler());
-//        server.createContext("/admin/users/{id}/status", new AdminHttpHandler());
-//        server.createContext("/admin/orders", new AdminHttpHandler());
-//        server.createContext("/admin/transactions", new AdminHttpHandler());
+        server.createContext("/ratings", new RatingHttpHandler());
         server.setExecutor(null);
         server.start();
         System.out.println("Server is running at: " + server.getAddress());
