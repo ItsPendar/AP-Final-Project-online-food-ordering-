@@ -8,7 +8,9 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.server.Controller.FoodItemController;
 import org.example.server.Controller.MenuController;
+import org.example.server.Controller.RestaurantController;
 import org.example.server.Controller.UserController;
+import org.example.server.Util.JWTHandler;
 import org.example.server.Util.ResponseHandler;
 import org.example.server.dao.RestaurantDAO;
 import org.example.server.modules.Restaurant;
@@ -18,12 +20,15 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class VendorHttpHandler implements HttpHandler {
     private final FoodItemController foodItemController;
+    private final RestaurantController restaurantController;
     public VendorHttpHandler() throws SQLException {
         this.foodItemController = new FoodItemController();
+        this.restaurantController = new RestaurantController();
     }
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -64,6 +69,49 @@ public class VendorHttpHandler implements HttpHandler {
             }
             response.set("menu_titles", arrayNode);
             sendResponse(exchange,200,response);
+        }//get list of menus and items for a restaurant✅
+        else if(path.matches("/vendors") && requestMethod.equals("POST")) {
+            System.out.println("search request detected");
+            User user = null;
+            try {
+                user = JWTHandler.getUserByToken(exchange);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            if(user == null){
+                ResponseHandler.sendErrorResponse(exchange,401,"Unauthorized request");
+                return;
+            }
+            if(!user.getUserRole().equals("buyer")){
+                ResponseHandler.sendErrorResponse(exchange,403,"Forbidden request");
+                return;
+            }
+            String body = new String(exchange.getRequestBody().readAllBytes());
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(body);
+            String searchText = json.get("search").asText();
+            List<Restaurant> restaurants = new ArrayList<>();
+            try {
+                restaurants = restaurantController.searchRestaurantsByText(searchText);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            JSONArray responseArray = new JSONArray();
+            for (Restaurant r : restaurants) {
+                JSONObject obj = new JSONObject();
+                obj.put("name", r.getName());
+                obj.put("address", r.getAddress());
+                obj.put("phone", r.getPhone());
+                obj.put("tax_fee",r.getTaxFee());
+                obj.put("additional_fee",r.getAdditionalFee());
+                obj.put("id",RestaurantController.getRestaurantIDByPhone(r.getPhone()));
+                obj.put("logoBase64", r.getLogoBase64());
+                responseArray.put(obj);
+            }
+            byte[] responseBytes = responseArray.toString().getBytes();
+            exchange.sendResponseHeaders(200, responseBytes.length);
+            exchange.getResponseBody().write(responseBytes);
+            exchange.getResponseBody().close();
         }
         else{
             ResponseHandler.sendErrorResponse(exchange,405 , "Request method not allowed");

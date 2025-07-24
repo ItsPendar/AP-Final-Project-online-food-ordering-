@@ -37,7 +37,6 @@ public class OrderHttpHandler implements HttpHandler {
         String requestMethod = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
         if (path.equals("/orders") && requestMethod.equals("POST")) {
-            System.out.println("request received");
             User user = null;
             try {
                 user = JWTHandler.getUserByToken(exchange);

@@ -51,7 +51,6 @@ public class AdminHttpHandler implements HttpHandler {
             return;
         }
 
-        // پردازش مسیر
         if (method.equalsIgnoreCase("GET") && path.equals("/admin/users")) {
             handleGetAllUsers(exchange);
         } else if (method.equalsIgnoreCase("GET") && path.equals("/admin/orders")) {

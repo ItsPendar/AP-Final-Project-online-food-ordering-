@@ -1,5 +1,6 @@
 package org.example.server.dao;
 
+import org.example.server.modules.FoodItem;
 import org.example.server.modules.Menu;
 import org.example.server.modules.Restaurant;
 import org.example.server.modules.User;
@@ -11,6 +12,7 @@ import java.util.List;
 public class RestaurantDAO {
     private static final Connection connection;
     private static MenuDAO menuDAO;
+    private static FoodItemDAO foodItemDAO;
     static {
         try {
             connection = DatabaseConnectionManager.getConnection();
@@ -22,6 +24,7 @@ public class RestaurantDAO {
     public RestaurantDAO() throws SQLException {
         this.createRestaurantTable();
         menuDAO = new MenuDAO();
+        foodItemDAO = new FoodItemDAO();
     }
 
     public void createRestaurantTable() throws SQLException {
@@ -50,17 +53,58 @@ public class RestaurantDAO {
 
         while (rs.next()) {
             Restaurant restaurant = new Restaurant();
+            restaurant.setRestaurantID(rs.getInt("restaurant_id"));
             restaurant.setName(rs.getString("name"));
             restaurant.setAddress(rs.getString("address"));
             restaurant.setPhone(rs.getString("phone"));
             restaurant.setLogoBase64(rs.getString("logo_base64"));
-            restaurant.setTaxFee(rs.getInt("tax_fee"));
-            restaurant.setAdditionalFee(rs.getInt("additional_fee"));
+            restaurant.setTaxFee(rs.getDouble("tax_fee"));
+            restaurant.setAdditionalFee(rs.getDouble("additional_fee"));
             restaurants.add(restaurant);
         }
 
         return restaurants;
     }
+
+    public List<Restaurant> searchRestaurantsByText(String searchText) throws SQLException {
+        List<Restaurant> matchedRestaurants = new ArrayList<>();
+        List<Restaurant> allRestaurants = getAllRestaurants();
+
+        for (Restaurant restaurant : allRestaurants) {
+            boolean matched = false;
+            // Check restaurant name
+            if (restaurant.getName().toLowerCase().contains(searchText.toLowerCase())) {
+                matchedRestaurants.add(restaurant);
+                continue;
+            }
+            // Get all food item IDs of this restaurant
+            List<Integer> itemIDs = foodItemDAO.getItemIDsInARestaurant(restaurant.getRestaurantID());
+            System.out.println("list of " +  restaurant.getName() + " restaurant item ids : " + itemIDs);
+            System.out.println("restaurant ID here : " + restaurant.getRestaurantID());
+            for (int itemID : itemIDs) {
+                FoodItem foodItem = foodItemDAO.getFoodItemByID(itemID);
+                if (foodItem == null) continue;
+                // Check food item name
+                if (foodItem.getName().toLowerCase().contains(searchText.toLowerCase())) {
+                    matched = true;
+                    break;
+                }
+                // Check keywords
+                for (String keyword : foodItem.getKeyword()) {
+                    if (keyword.toLowerCase().contains(searchText.toLowerCase())) {
+                        matched = true;
+                        break;
+                    }
+                }
+                if (matched) break;
+            }
+            if (matched) {
+                matchedRestaurants.add(restaurant);
+            }
+        }
+        return matchedRestaurants;
+    }
+
     public List<Restaurant> getAnOwnersRestaurants(int ownerID) throws SQLException {
         List<Restaurant> restaurants = new ArrayList<>();
         String query = "SELECT * FROM restaurants WHERE owner_id = ?";
@@ -99,11 +143,13 @@ public class RestaurantDAO {
             throw new SQLException("Creating food item failed, no ID obtained.");
         }
     }
+
     public void initializeGeneralMenu(int restaurantID) throws SQLException {
         Menu newMenu = new Menu(restaurantID,"all");
         if(!menuDAO.doesMenuExist(restaurantID, "all"))
             menuDAO.addMenu(newMenu);
     }
+
     public String getRestaurantIDByPhoneNumber(String phoneNumber) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(

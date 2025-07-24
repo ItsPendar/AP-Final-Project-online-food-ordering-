@@ -16,6 +16,11 @@ public class RestaurantController {
     public List<Restaurant> getAllRestaurants() throws SQLException {
         return restaurantDAO.getAllRestaurants();
     }
+
+    public List<Restaurant> searchRestaurantsByText(String searchText) throws SQLException {
+        return restaurantDAO.searchRestaurantsByText(searchText);
+    }
+
     public List<Restaurant> getAnOwnersRestaurants(int ownerID) throws SQLException {
         return restaurantDAO.getAnOwnersRestaurants(ownerID);
     }

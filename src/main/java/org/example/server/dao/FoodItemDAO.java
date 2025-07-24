@@ -178,10 +178,9 @@ public class FoodItemDAO {
     }
     public List<Integer> getItemIDsInARestaurant(int restaurantID) throws SQLException {
         List<Integer> itemIDsList = new ArrayList<>();
-        String query = "SELECT food_id FROM foods WHERE 'all' = ANY(menu_title) AND restaurant_id = ?";
+        String query = "SELECT food_id FROM foods WHERE restaurant_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            //stmt.setString(1, "all");
-            stmt.setInt(1,restaurantID);
+            stmt.setInt(1, restaurantID);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     itemIDsList.add(rs.getInt("food_id"));
@@ -189,5 +188,27 @@ public class FoodItemDAO {
             }
         }
         return itemIDsList;
+    }
+    public FoodItem getFoodItemByID(int itemID) throws SQLException {
+        String query = "SELECT * FROM foods WHERE food_id = ?";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setInt(1, itemID);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            FoodItem item = new FoodItem();
+            item.setFoodItemID(itemID);
+            item.setName(rs.getString("name"));
+            item.setDescription(rs.getString("description"));
+            item.setPrice(rs.getDouble("price"));
+            item.setSupply(rs.getInt("supply"));
+            Array keywordArray = rs.getArray("keywords");
+            if (keywordArray != null) {
+                item.setKeyword(List.of((String[]) keywordArray.getArray()));
+            }
+            item.setImageBase64(rs.getString("image_base64"));
+            item.setRestaurantID(rs.getInt("restaurant_id"));
+            return item;
+        }
+        return null;
     }
 }
