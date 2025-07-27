@@ -18,9 +18,16 @@ public class RatingController {
         ratingDAO.saveRatingWithImages(rating);
     }
 
+    public Rating getRatingByOrderId(int orderId) throws SQLException {
+        return ratingDAO.getRatingByOrderId(orderId);
+    }
 
     public List<Rating> getRatingsByItemId(int itemId) throws SQLException {
         return ratingDAO.getRatingsByItemId(itemId);
+    }
+
+    public List<Rating> getRatingsByUserId(int userId) throws SQLException {
+        return ratingDAO.getRatingsByUserId(userId);
     }
 
 

@@ -335,8 +335,11 @@ public class OrderDAO {
         WHERE order_id = ?
     """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            System.out.println("status in DAO : " + newStatus);
             stmt.setString(1, newStatus);
+            System.out.println("courier id in DAO : " + courierID);
             stmt.setInt(2, courierID);
+            System.out.println("order id in DAO : " + orderId);
             stmt.setInt(3, orderId);
 
             int rowsUpdated = stmt.executeUpdate();

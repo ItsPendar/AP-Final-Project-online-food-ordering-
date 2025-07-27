@@ -35,7 +35,7 @@ public class DeliHttpHandler implements HttpHandler {
         if (path.matches("/deliveries/\\d+") && method.equalsIgnoreCase("PATCH")) {
             System.out.println("change status request detected");
             int id = extractId(path, "/deliveries/");
-            System.out.println("orderID : " + id);
+            System.out.println("orderID in change order status: " + id);
             User user = null;
             try {
                 user = JWTHandler.getUserByToken(exchange);
@@ -53,10 +53,13 @@ public class DeliHttpHandler implements HttpHandler {
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
             String status = json.getString("status");
+            System.out.println("status in change status is : " + status);
             int courierID = -1;
             if(user.getUserRole().equals("courier")) {
                 courierID = JWTHandler.getUserIDByToken(exchange);
             }
+            else
+                courierID = 1;
             try {
                 if(orderDAO.updateOrderStatus(id,status,courierID)){
                     ResponseHandler.sendResponse(exchange,200,"Updated the order status successfully");
@@ -87,9 +90,7 @@ public class DeliHttpHandler implements HttpHandler {
             }
             List<Map<String, Object>> ordersList;
             try {
-                System.out.println("passed status : " + Status.WAITING_VENDOR.toString().toLowerCase());
-                ordersList = orderDAO.getOrdersByStatus(Status.WAITING_VENDOR.toString().toLowerCase());
-                System.out.println("successfully fetched the list of available orders");
+                ordersList = orderDAO.getOrdersByStatus(Status.SUBMITTED.toString().toLowerCase());
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
