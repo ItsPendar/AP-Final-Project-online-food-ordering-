@@ -79,6 +79,19 @@ public class RatingHttpHandler implements HttpHandler {
         else if (method.equalsIgnoreCase("PUT") && path.matches("/ratings/\\d")) {
             handleUpdateRatingById(exchange);
         }
+        else if (method.equalsIgnoreCase("GET") && path.matches("/ratings/vendor/\\d")) {
+            String[] pathParts = exchange.getRequestURI().getPath().split("/");
+            int vendorID = Integer.parseInt(pathParts[pathParts.length - 1]);
+            double averageRating = 0.0;
+            try {
+                averageRating = ratingController.getAverageRatingForVendor(vendorID);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            JSONObject responseJson = new JSONObject();
+            responseJson.put("average", averageRating);
+            ResponseHandler.sendResponse(exchange,200,responseJson);
+        }//get the average rating for a restaurant
         else if(method.equalsIgnoreCase("GET") && path.matches("/ratings/orders/\\d")){
             try {
                 getRatingOfAnOrder(exchange);

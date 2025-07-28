@@ -30,6 +30,9 @@ public class RatingController {
         return ratingDAO.getRatingsByUserId(userId);
     }
 
+    public double getAverageRatingForVendor(int vendorId) throws SQLException {
+        return ratingDAO.getAverageRatingForVendor(vendorId);
+    }
 
     public Rating getRatingById(int ratingId) throws SQLException {
         return ratingDAO.getRatingById(ratingId);

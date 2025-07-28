@@ -82,6 +82,18 @@ public class RatingDAO {
         }
     }
 
+    public double getAverageRatingForVendor(int vendorId) throws SQLException {
+        String sql = "SELECT AVG(rating) AS avg_rating FROM ratings WHERE vendor_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, vendorId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("avg_rating");
+            }
+        }
+        return 0.0;
+    }
+
     public void saveRatingWithImages(Rating rating) throws SQLException {
         int ratingId = insertRating(rating);
         if (ratingId != -1 && rating.getImageBase64() != null && !rating.getImageBase64().isEmpty()) {
