@@ -26,7 +26,6 @@ public class PaymentHttpHandler implements HttpHandler {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
         if (path.equals("/payment/online") && method.equalsIgnoreCase("POST")) {
-            System.out.println("transaction request received");
             User user = null;
             try {
                 user = JWTHandler.getUserByToken(exchange);
@@ -45,7 +44,6 @@ public class PaymentHttpHandler implements HttpHandler {
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
             String paymentMethod = json.getString("method");
-            System.out.println("payment method in payment Http handler is : " + paymentMethod);
             //TODO : create a transaction object and save it into the table in DB and get transactionID back✅
             Transaction newTransaction = new Transaction();
             newTransaction.setMethod(paymentMethod);
@@ -74,7 +72,8 @@ public class PaymentHttpHandler implements HttpHandler {
             else{
                 ResponseHandler.sendErrorResponse(exchange,500,"Internal server error : Failed to save the transaction");
             }
-        } else {
+        }
+        else {
             ResponseHandler.sendErrorResponse(exchange,404,"page not found!");
         }
     }

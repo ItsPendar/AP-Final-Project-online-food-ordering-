@@ -4,6 +4,7 @@ import org.example.server.dao.TransactionDAO;
 import org.example.server.modules.Transaction;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -24,5 +25,9 @@ public class TransactionController {
 
     public List<Map<String, Object>> getAllTransactionsAsMapList() throws SQLException {
         return transactionDAO.getAllTransactionsAsMapList();
+    }
+
+    public List<Map<String, Object>> getTransactionsByUserMethodBeforeDate(int userID, String paymentMethod, LocalDateTime beforeDate) throws SQLException {
+        return transactionDAO.getTransactionsByUserMethodBeforeDate(userID,paymentMethod,beforeDate);
     }
 }

@@ -3,6 +3,7 @@ package org.example.server.dao;
 import org.example.server.modules.Transaction;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +97,48 @@ public class TransactionDAO {
                 transactionMap.put("amount", rs.getDouble("amount"));
 
                 result.add(transactionMap);
+            }
+        }
+
+        return result;
+    }
+
+    public List<Map<String, Object>> getTransactionsByUserMethodBeforeDate(int userID, String paymentMethod, LocalDateTime beforeDate) throws SQLException {
+        String baseSql = """
+        SELECT transaction_id, order_id, user_id, tr_method, status, created_at, amount
+        FROM transactions
+        WHERE user_id = ? AND created_at < ?
+    """;
+
+        // Add method filter only if paymentMethod is provided
+        if (!paymentMethod.isEmpty()) {
+            baseSql += " AND tr_method = ?";
+        }
+
+        baseSql += " ORDER BY created_at DESC;";
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(baseSql)) {
+            preparedStatement.setInt(1, userID);
+            preparedStatement.setTimestamp(2, Timestamp.valueOf(beforeDate));
+
+            if (!paymentMethod.isEmpty()) {
+                preparedStatement.setString(3, paymentMethod);
+            }
+
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> transactionMap = new HashMap<>();
+                    transactionMap.put("id", rs.getInt("transaction_id"));
+                    transactionMap.put("order_id", rs.getInt("order_id"));
+                    transactionMap.put("user_id", rs.getInt("user_id"));
+                    transactionMap.put("tr_method", rs.getString("tr_method"));
+                    transactionMap.put("status", rs.getString("status"));
+                    transactionMap.put("created_at", rs.getTimestamp("created_at").toString());
+                    transactionMap.put("amount", rs.getDouble("amount"));
+                    result.add(transactionMap);
+                }
             }
         }
 
