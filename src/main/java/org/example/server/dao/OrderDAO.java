@@ -57,7 +57,7 @@ public class OrderDAO {
         INSERT INTO orders (
             customer_id, delivery_address, vendor_id, courier_id,
             rawPrice, taxFee, courierFee, additionalFee, payPrice,
-            status, order_items, createdAt, updatedAt,payment_method
+            status, order_items, createdAt, updatedAt, payment_method
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING order_id;
     """;
@@ -113,7 +113,7 @@ public class OrderDAO {
             o.additionalFee,
             o.payPrice,
             o.status,
-            o.payment_method
+            o.payment_method,
             o.createdAt,
             o.updatedAt,
             o.courier_id,
@@ -180,6 +180,7 @@ public class OrderDAO {
         }
         return result;
     }
+
     public String getItemNameById(String itemId) throws SQLException {
         String sql = "SELECT name FROM items WHERE item_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -345,7 +346,7 @@ public class OrderDAO {
             o.additionalFee,
             o.payPrice,
             o.status,
-            o.payment_method
+            o.payment_method,
             o.createdAt,
             o.updatedAt,
             o.courier_id,

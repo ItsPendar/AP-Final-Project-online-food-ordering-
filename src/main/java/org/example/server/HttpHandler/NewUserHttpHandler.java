@@ -46,17 +46,17 @@ public class NewUserHttpHandler implements HttpHandler {
                     if (userController.addUser(newUser)) {
                         // If the user is added successfully, send a 200 OK response
                         jsonResponse = new JSONObject();
-                        String userID = userController.getUserIDByPhoneNumber(newUser.getPhoneNumber());
+                        int userID = userController.getUserIDByPhoneNumber(newUser.getPhoneNumber());
                         //String PhoneNumber = jsonResponse.getString("phone");
-                        if(userID != null && !userID.isEmpty())
+                        if(userID != -1)
                             newUser.setUserID(userID);
                         else {
-                            newUser.setUserID("0");
+                            newUser.setUserID(0);
                             exchange.sendResponseHeaders(200, 0);
                         }
                         jsonResponse.put("message", "User registered successfully");
                         jsonResponse.put("userID", newUser.getUserID());
-                        jsonResponse.put("token", JWTHandler.generateToken(userID));
+                        jsonResponse.put("token", JWTHandler.generateToken(String.valueOf(userID)));
                         responseBytes = jsonResponse.toString().getBytes(StandardCharsets.UTF_8);
                         exchange.getResponseHeaders().set("Content-Type", "application/json");
                         exchange.sendResponseHeaders(200, responseBytes.length);

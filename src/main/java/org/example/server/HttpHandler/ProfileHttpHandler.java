@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.server.Controller.UserController;
 import org.example.server.Util.JWTHandler;
+import org.example.server.Util.ResponseHandler;
 import org.example.server.modules.User;
 import org.json.JSONObject;
 
@@ -56,7 +57,6 @@ public class ProfileHttpHandler implements HttpHandler {
                     sendErrorResponse(exchange, 404, "User not found");
                     return;
                 }
-
                 JSONObject userJson = new JSONObject();
                 userJson.put("id",UserController.getUserIDByPhoneNumber(user.getPhoneNumber()));
                 //System.out.println("also the user ID here" + UserController.getUserIDByPhoneNumber(user.getPhoneNumber()));
@@ -81,10 +81,16 @@ public class ProfileHttpHandler implements HttpHandler {
             }
         }
         else if (exchange.getRequestMethod().equalsIgnoreCase("PUT")) {
+            User user = null;
+            try {
+                user = JWTHandler.getUserByToken(exchange);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("user id is : " + user.getUserID());
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
 
-            String oldPhoneNumber = json.optString("old_phone_number", null);
             String newPhoneNumber = json.optString("phone", null);
             System.out.println("new phone number is : " + newPhoneNumber);
             if (newPhoneNumber== null) {
@@ -94,8 +100,6 @@ public class ProfileHttpHandler implements HttpHandler {
 
             try {
                 UserController userController = new UserController();
-                User user = UserController.getUserByPhone(oldPhoneNumber);
-
                 if (user == null) {
                     sendErrorResponse(exchange, 404, "User not found.");
                     return;
@@ -121,15 +125,9 @@ public class ProfileHttpHandler implements HttpHandler {
                 if (profileImage != null) user.setProfileImage(profileImage);
                 if (bankName != null) user.setBankName(bankName);
                 if (accountNumber != null) user.setBankAccountNumber(accountNumber);
-
-                userController.updateUser(user,newPhoneNumber,newPhoneNumber);
-
-                responseJson.put("message", "User profile updated successfully");
-
-                byte[] responseBytes = responseJson.toString().getBytes();
-                exchange.sendResponseHeaders(200, responseBytes.length);
-                exchange.getResponseBody().write(responseBytes);
-                exchange.getResponseBody().close();
+                user.setUserID(JWTHandler.getUserIDByToken(exchange));
+                userController.updateUser(user);
+                ResponseHandler.sendResponse(exchange,200,"User profile updated successfully");
 
             } catch (Exception e) {
                 sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());

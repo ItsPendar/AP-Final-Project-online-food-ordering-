@@ -48,7 +48,7 @@ public class LoginUserHttpHandler implements HttpHandler {
                                 // If user exists and is approved, send success response
                                 JSONObject user = getJsonObject(loggedInUser);
                                 responseJson.put("message", "You successfully logged in!");
-                                responseJson.put("token", JWTHandler.generateToken(UserController.getUserIDByPhoneNumber(phoneNumber)));
+                                responseJson.put("token", JWTHandler.generateToken(String.valueOf(UserController.getUserIDByPhoneNumber(phoneNumber))));
                                 responseJson.put("user",user);
                                 System.out.println("User ID : " + UserController.getUserIDByPhoneNumber(phoneNumber));
                                 byte[] responseBytes = responseJson.toString().getBytes(StandardCharsets.UTF_8);

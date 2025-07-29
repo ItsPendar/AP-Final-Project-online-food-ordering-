@@ -131,6 +131,7 @@ public class OrderHttpHandler implements HttpHandler {
             System.out.println("get history request detected");
             try {
                 User user = JWTHandler.getUserByToken(exchange);
+                System.out.println("userID is : " + JWTHandler.getUserIDByToken(exchange));
                 if(user == null){
                     ResponseHandler.sendErrorResponse(exchange,401,"Unauthorized request");
                     return;
@@ -145,8 +146,10 @@ public class OrderHttpHandler implements HttpHandler {
                 List<Map<String, Object>> history = new ArrayList<>();
                 int vendorID;
                 System.out.println("user role in get history : " + user.getUserRole());
-                if(user.getUserRole().equals("buyer"))
+                if(user.getUserRole().equals("buyer")) {
                     history = orderController.getOrderHistory(JWTHandler.getUserIDByToken(exchange), null, null);
+                    System.out.println("order history for this user is : " + history);
+                }
                 else if(user.getUserRole().equals("seller")) {
                     vendorID = JWTHandler.getRestaurantIDByOwnerID(exchange);
                     history = orderController.getOrdersByVendorId(vendorID);

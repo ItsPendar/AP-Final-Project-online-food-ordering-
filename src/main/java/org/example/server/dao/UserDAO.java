@@ -48,6 +48,7 @@ public class UserDAO {
         );
         preparedStatement.executeUpdate();
     }
+
     public static void saveUser(User user) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
             "INSERT INTO users (name, phone_number, email, password, user_role, address, profileImage, bank_name, bank_account_number, is_approved) " +
@@ -136,7 +137,7 @@ public class UserDAO {
             var resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 User user = new User();
-                user.setUserID(resultSet.getString("userid"));
+                user.setUserID(resultSet.getInt("userid"));
                 return getUser(resultSet, user);
             }
         } catch (SQLException e) {
@@ -176,7 +177,7 @@ public class UserDAO {
         return false; // User does not exist
     }
 
-    public String getUserIDByPhoneNumber(String phoneNumber) {
+    public int getUserIDByPhoneNumber(String phoneNumber) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT userid FROM users WHERE phone_number = ?"
@@ -185,13 +186,14 @@ public class UserDAO {
 
             var resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getString("userid"); // Return the userID
+                return resultSet.getInt("userid"); // Return the userID
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null; // User not found
+        return -1; // User not found
     }
+
     public boolean doesUserExistByPhone(String phoneNumber) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT COUNT(*) FROM users WHERE phone_number = ?"
@@ -204,20 +206,34 @@ public class UserDAO {
         }
         return false; // User does not exist
     }
-    public static void updateUser(User user,String newPhoneNumber, String oldPhoneNumber) throws SQLException {
-        String sql = "UPDATE users SET name = ?,phone_number = ?, email = ?, address = ?, profileimage = ?, bank_name = ?, bank_account_number = ?, wallet_balance = ?  WHERE phone_number = ?";
+
+    public static void updateUser(User user) throws SQLException {
+        String sql = "UPDATE users SET name = ?,phone_number = ?, email = ?, address = ?, profileImage = ?, bank_name = ?, bank_account_number = ?  WHERE userid = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
+        System.out.println("user name is : " + user.getName());
         preparedStatement.setString(1, user.getName());
-        preparedStatement.setString(2,newPhoneNumber);
+        System.out.println("phone number : " + user.getPhoneNumber());
+        preparedStatement.setString(2,user.getPhoneNumber());
+        System.out.println("email : " + user.getEmail());
         preparedStatement.setString(3,user.getEmail());
+        System.out.println("address : " + user.getAddress());
         preparedStatement.setString(4,user.getAddress());
         preparedStatement.setString(5,user.getProfileImage());
+        System.out.println("bank name : " + user.getBankName());
         preparedStatement.setString(6,user.getBankName());
+        System.out.println("bank account number : " + user.getBankAccountNumber());
         preparedStatement.setString(7,user.getBankAccountNumber());
-        preparedStatement.setDouble(8,user.getWalletBalance());
-        preparedStatement.setString(9,oldPhoneNumber);
-        preparedStatement.executeUpdate();
+        System.out.println("userID : " + user.getUserID());
+        preparedStatement.setInt(8,user.getUserID());
+        try {
+            int rowsAffected = preparedStatement.executeUpdate();
+            System.out.println("Rows affected: " + rowsAffected);
+            System.out.println("user info has been updated");
+        } catch (SQLException e) {
+            System.err.println("Failed to update user: " + e.getMessage());
+            throw e; // optional rethrow
+        }
     }
 
     public double getWalletBalanceByUserID(int userID) throws SQLException {
@@ -270,7 +286,7 @@ public class UserDAO {
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
             User user = new User();
-            user.setUserID(rs.getString("userid"));
+            user.setUserID(rs.getInt("userid"));
             user.setName(rs.getString("name"));
             user.setPhoneNumber(rs.getString("phone_number"));
             user.setEmail(rs.getString("email"));

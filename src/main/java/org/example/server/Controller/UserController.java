@@ -52,9 +52,9 @@ public class UserController {
         return userDAO.deductFromWalletBalance(userID,amount);
     }
 
-    public void updateUser(User user, String newPhoneNumber, String oldPhoneNumber) throws SQLException {
+    public void updateUser(User user) throws SQLException {
         UserDAO userDAO = new UserDAO();
-        UserDAO.updateUser(user, newPhoneNumber, oldPhoneNumber);
+        UserDAO.updateUser(user);
     }
 
     public static boolean doesUserExist(String phoneNumber) {
@@ -74,7 +74,7 @@ public class UserController {
         }
     }
 
-    public static String getUserIDByPhoneNumber(String phoneNumber) {
+    public static int getUserIDByPhoneNumber(String phoneNumber) {
         return userDAO.getUserIDByPhoneNumber(phoneNumber);
     }
 

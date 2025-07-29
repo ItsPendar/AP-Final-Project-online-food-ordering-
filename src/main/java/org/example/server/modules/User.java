@@ -10,7 +10,7 @@ public class User
     private String password;
     private String user_role;
     private String address;
-    private String userID;
+    private int userID;
     private String profileImage;
     private String bank_name;
     private String bank_account_number;
@@ -103,7 +103,7 @@ public class User
     public String getAddress() {
         return address;
     }
-    public String getUserID() {
+    public int getUserID() {
         return userID;
     }
     public String getProfileImage() {
@@ -137,7 +137,7 @@ public class User
     public void setAddress(String address) {
         this.address = address;
     }
-    public void setUserID(String userID) {
+    public void setUserID(int userID) {
         this.userID = userID;
     }
     public void setProfileImage(String profileImage) {
