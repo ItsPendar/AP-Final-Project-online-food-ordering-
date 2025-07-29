@@ -45,6 +45,7 @@ public class PaymentHttpHandler implements HttpHandler {
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
             String paymentMethod = json.getString("method");
+            System.out.println("payment method in payment Http handler is : " + paymentMethod);
             //TODO : create a transaction object and save it into the table in DB and get transactionID back✅
             Transaction newTransaction = new Transaction();
             newTransaction.setMethod(paymentMethod);

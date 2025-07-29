@@ -220,6 +220,50 @@ public class UserDAO {
         preparedStatement.executeUpdate();
     }
 
+    public double getWalletBalanceByUserID(int userID) throws SQLException {
+        String query = "SELECT wallet_balance FROM users WHERE userid = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setInt(1, userID);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        if (resultSet.next()) {
+            return resultSet.getDouble("wallet_balance");
+        } else {
+            throw new SQLException("User not found with ID: " + userID);
+        }
+    }
+
+    public double addToWalletBalance(int userID, double amount) throws SQLException {
+        double currentBalance = getWalletBalanceByUserID(userID);
+        double newBalance = currentBalance + amount;
+
+        String updateQuery = "UPDATE users SET wallet_balance = ? WHERE userid = ?";
+        PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+        updateStatement.setDouble(1, newBalance);
+        updateStatement.setInt(2, userID);
+        updateStatement.executeUpdate();
+
+        return newBalance;
+    }
+
+    public double deductFromWalletBalance(int userID, double amount) throws SQLException {
+        double currentBalance = getWalletBalanceByUserID(userID);
+
+        if (amount > currentBalance) {
+            throw new IllegalArgumentException("Insufficient wallet balance for user ID: " + userID);
+        }
+
+        double newBalance = currentBalance - amount;
+
+        String updateQuery = "UPDATE users SET wallet_balance = ? WHERE userid = ?";
+        PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+        updateStatement.setDouble(1, newBalance);
+        updateStatement.setInt(2, userID);
+        updateStatement.executeUpdate();
+
+        return newBalance;
+    }
+
     public List<User> getAllUsers() throws SQLException {
         List<User> userList = new ArrayList<>();
         PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users");

@@ -3,6 +3,7 @@ package org.example.server.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.server.Controller.TransactionController;
+import org.example.server.Controller.UserController;
 import org.example.server.Util.JWTHandler;
 import org.example.server.Util.ResponseHandler;
 import org.example.server.dao.UserDAO;
@@ -16,9 +17,11 @@ import java.time.LocalDateTime;
 
 public class WalletHttpHandler implements HttpHandler {
     private final TransactionController transactionController;
+    private final UserController userController;
 
     public WalletHttpHandler() throws SQLException {
         transactionController = new TransactionController();
+        this.userController = new UserController();
     }
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -34,31 +37,59 @@ public class WalletHttpHandler implements HttpHandler {
             Transaction transaction = new Transaction();
             transaction.setUser_id(userID);
             transaction.setCreated_at(LocalDateTime.now());
+            transaction.setMethod("wallet");
             String body = new String(exchange.getRequestBody().readAllBytes());
             JSONObject json = new JSONObject(body);
             if(json.get("amount") == null) {
                 ResponseHandler.sendErrorResponse(exchange,400,"Bad request : invalid request body");
                 transaction.setStatus("Failed");
                 transaction.setAmount(-1);
-                //TODO : save the transaction to its table through TransactionDAO
+                try {
+                    transactionController.saveTransaction(transaction);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
             double amount = json.getDouble("amount");
-            //TODO : get user's current balance and add the top up amount to it
-            //TODO : update the user after updating the balance using UserDAO
+            double currentBalance = 0.0;
+            try {
+                currentBalance = userController.addToWalletBalance(userID,amount);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
             transaction.setAmount(amount);
             transaction.setStatus("Success");
             transaction.setOrder_id(0);
-            ResponseHandler.sendResponse(exchange,200,"Wallet charged up successfully");
-            //TODO : save the transaction using TransactionDAO
             try {
                 transactionController.saveTransaction(transaction);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-            //TODO : you should make an order in your order table that is only used for wallet top up
-            //and give the ID of that order to this transaction's orderID field
+            JSONObject responseBody = new JSONObject();
+            responseBody.put("current_balance", currentBalance);
+            ResponseHandler.sendResponse(exchange,200,responseBody);
 
-        }
+        }//charge the user's walley
+        else if(path.equals("/wallet/balance") && method.equalsIgnoreCase("GET")){
+            int userID = JWTHandler.getUserIDByToken(exchange);
+            User user = UserDAO.getUserByID(userID);
+            if(user == null || !user.getUserRole().equals("buyer")) {
+                System.out.println("user role is : " + user.getUserRole());
+                ResponseHandler.sendErrorResponse(exchange,401,"Unauthorized request");
+                return;
+            }
+            double currentBalance = 0.0;
+            try {
+                currentBalance = userController.getWalletBalanceByUserID(userID);
+                System.out.println("current balance is : " + currentBalance);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            JSONObject responseBody = new JSONObject();
+            responseBody.put("current_balance", currentBalance);
+            ResponseHandler.sendResponse(exchange,200,responseBody);
+        }//get the user's current wallet balance. this returns the wallet balance of the user that has sent the request
         else {
             ResponseHandler.sendErrorResponse(exchange,404,"Page not found!");
         }

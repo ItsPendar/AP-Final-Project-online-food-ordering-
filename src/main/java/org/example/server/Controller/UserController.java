@@ -40,6 +40,18 @@ public class UserController {
         return UserDAO.getUserByID(ID);
     }
 
+    public double getWalletBalanceByUserID(int userID) throws SQLException {
+        return userDAO.getWalletBalanceByUserID(userID);
+    }
+
+    public double addToWalletBalance(int userID, double amount) throws SQLException {
+        return userDAO.addToWalletBalance(userID,amount);
+    }
+
+    public double deductFromWalletBalance(int userID, double amount) throws SQLException {
+        return userDAO.deductFromWalletBalance(userID,amount);
+    }
+
     public void updateUser(User user, String newPhoneNumber, String oldPhoneNumber) throws SQLException {
         UserDAO userDAO = new UserDAO();
         UserDAO.updateUser(user, newPhoneNumber, oldPhoneNumber);

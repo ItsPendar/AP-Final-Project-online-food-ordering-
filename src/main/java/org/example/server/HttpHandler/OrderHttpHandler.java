@@ -74,6 +74,9 @@ public class OrderHttpHandler implements HttpHandler {
             order.setAdditionalFee(json.get("additional_fee").asDouble());
             order.setPayPrice(json.get("pay_price").asDouble());
             order.setStatus(String.valueOf(Status.WAITING_VENDOR).toLowerCase());
+            System.out.println("here in order http handler");
+            System.out.println("payment method is : " + json.get("method").asText());
+            order.setMethod(json.get("method").asText());
             order.setCreatedAt(LocalDateTime.now());
             order.setUpdatedAt(LocalDateTime.now());
 
@@ -111,9 +114,9 @@ public class OrderHttpHandler implements HttpHandler {
                 response.put("created_at", order.getCreatedAt().toString());
                 response.put("updated_at",order.getUpdatedAt().toString());//the order status hasn't been updated yet
                 response.put("courier_id",order.getCourierID());//the order doesn't have a courier yet
+                response.put("method", order.getMethod());
 
                 ResponseHandler.sendResponse(exchange,200,response);
-                //TODO : update the orderId field in transaction table✅
                 try {
                     transactionController.updateOrderIDField(orderID,Integer.parseInt(String.valueOf(json.get("transaction_id"))));
                 } catch (SQLException e) {

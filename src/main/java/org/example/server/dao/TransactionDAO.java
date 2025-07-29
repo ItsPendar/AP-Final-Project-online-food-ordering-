@@ -69,6 +69,7 @@ public class TransactionDAO {
             preparedStatement.executeUpdate();
         }
     }
+
     public List<Map<String, Object>> getTransactionHistoryAsMapList(int userID) throws SQLException {
         System.out.println("inside get transaction history method in DAO");
         String sql = """
@@ -82,29 +83,19 @@ public class TransactionDAO {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, userID);
-            System.out.println("userID : " + userID);
             ResultSet rs = preparedStatement.executeQuery();
 
             while (rs.next()) {
-                System.out.println("in while loop");
                 Map<String, Object> transactionMap = new HashMap<>();
                 transactionMap.put("id", rs.getInt("transaction_id"));
-                System.out.println("transactionID : " + rs.getInt("transaction_id"));
                 transactionMap.put("order_id", rs.getInt("order_id"));
-                System.out.println("orderID : " + rs.getInt("order_id"));
                 transactionMap.put("user_id", rs.getInt("user_id"));
-                System.out.println("useRID : " + rs.getInt("user_id"));
                 transactionMap.put("tr_method", rs.getString("tr_method"));
-                System.out.println("method : " +rs.getString("tr_method") );
                 transactionMap.put("status", rs.getString("status"));
-                System.out.println("status : " + rs.getString("status"));
                 transactionMap.put("created_at", rs.getTimestamp("created_at").toString());
-                System.out.println("created at : " + rs.getTimestamp("created_at").toString());
                 transactionMap.put("amount", rs.getDouble("amount"));
-                System.out.println("amount : " + rs.getDouble("amount"));
 
                 result.add(transactionMap);
-                System.out.println("added rs");
             }
         }
 

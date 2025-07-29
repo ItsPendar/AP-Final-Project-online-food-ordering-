@@ -38,6 +38,7 @@ public class OrderDAO {
             additionalFee DOUBLE PRECISION NOT NULL,
             payPrice DOUBLE PRECISION NOT NULL,
             status VARCHAR(50) NOT NULL,
+            payment_method VARCHAR(50) NOT NULL,
             order_items VARCHAR(400),
             createdAt TIMESTAMP NOT NULL,
             updatedAt TIMESTAMP,
@@ -56,8 +57,8 @@ public class OrderDAO {
         INSERT INTO orders (
             customer_id, delivery_address, vendor_id, courier_id,
             rawPrice, taxFee, courierFee, additionalFee, payPrice,
-            status, order_items, createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            status, order_items, createdAt, updatedAt,payment_method
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING order_id;
     """;
 
@@ -87,6 +88,7 @@ public class OrderDAO {
             } else {
                 stmt.setNull(13, Types.TIMESTAMP);
             }
+            stmt.setString(14,order.getMethod());
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
@@ -96,6 +98,7 @@ public class OrderDAO {
             }
         }
     }
+
     public List<Map<String, Object>> getOrderHistory(int userID, String search, String vendor) throws SQLException {
         List<Map<String, Object>> result = new ArrayList<>();
         String sql = """
@@ -110,6 +113,7 @@ public class OrderDAO {
             o.additionalFee,
             o.payPrice,
             o.status,
+            o.payment_method
             o.createdAt,
             o.updatedAt,
             o.courier_id,
@@ -141,6 +145,7 @@ public class OrderDAO {
                     order.put("additional_fee", rs.getDouble("additionalFee"));
                     order.put("pay_price", rs.getDouble("payPrice"));
                     order.put("status", rs.getString("status"));
+                    order.put("method", rs.getString("payment_method"));
                     order.put("created_at", rs.getTimestamp("createdAt").toString());
                     order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
                             rs.getTimestamp("updatedAt").toString() : null);
@@ -199,6 +204,7 @@ public class OrderDAO {
             o.additionalFee,
             o.payPrice,
             o.status,
+            o.payment_method,
             o.createdAt,
             o.updatedAt,
             o.courier_id,
@@ -214,46 +220,21 @@ public class OrderDAO {
                 while (rs.next()) {
                     System.out.println("got in to the while loop");
                     Map<String, Object> order = new HashMap<>();
-                    System.out.println("id : " + rs.getInt("order_id"));
                     order.put("id", rs.getInt("order_id"));
-                    System.out.println("address: " + rs.getString("delivery_address"));
                     order.put("delivery_address", rs.getString("delivery_address"));
-                    System.out.println("customer id  : " + rs.getInt("customer_id"));
-
                     order.put("customer_id", rs.getInt("customer_id"));
-                    System.out.println("vendor id : " + rs.getInt("vendor_id"));
-
                     order.put("vendor_id", rs.getInt("vendor_id"));
-                    System.out.println("raw price : " + rs.getDouble("rawPrice"));
-
                     order.put("raw_price", rs.getDouble("rawPrice"));
-                    System.out.println("tax fee  : " + rs.getDouble("taxFee"));
-
                     order.put("tax_fee", rs.getDouble("taxFee"));
-                    System.out.println("courier fee : " + rs.getDouble("courierFee"));
-
                     order.put("courier_fee", rs.getDouble("courierFee"));
-                    System.out.println("additional fee : " + rs.getDouble("additionalFee"));
-
                     order.put("additional_fee", rs.getDouble("additionalFee"));
-                    System.out.println("pay price : " + rs.getDouble("payPrice"));
-
                     order.put("pay_price", rs.getDouble("payPrice"));
-                    System.out.println("status : " + rs.getString("status"));
-
                     order.put("status", rs.getString("status"));
-                    System.out.println("created at : " +  rs.getTimestamp("createdAt").toString());
-
+                    order.put("method", rs.getString("payment_method"));
                     order.put("created_at", rs.getTimestamp("createdAt").toString());
-                    System.out.println("updated at : " +  rs.getTimestamp("updatedAt"));
-
                     order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
                             rs.getTimestamp("updatedAt").toString() : null);
-                    System.out.println("courier id  : " + rs.getInt("courier_id"));
-
                     order.put("courier_id", rs.getObject("courier_id") != null ? rs.getInt("courier_id") : null);
-                    System.out.println("order_items : " + rs.getString("order_items"));
-
                     String itemString = rs.getString("order_items");
                     List<String> itemIDs = new ArrayList<>();
                     if (itemString != null && !itemString.isEmpty()) {
@@ -284,6 +265,7 @@ public class OrderDAO {
             o.additionalFee,
             o.payPrice,
             o.status,
+            o.payment_method,
             o.createdAt,
             o.updatedAt,
             o.courier_id,
@@ -308,6 +290,7 @@ public class OrderDAO {
                     order.put("additional_fee", rs.getDouble("additionalFee"));
                     order.put("pay_price", rs.getDouble("payPrice"));
                     order.put("status", rs.getString("status"));
+                    order.put("method", rs.getString("payment_method"));
                     order.put("created_at", rs.getTimestamp("createdAt").toString());
                     order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
                             rs.getTimestamp("updatedAt").toString() : null);
@@ -362,6 +345,7 @@ public class OrderDAO {
             o.additionalFee,
             o.payPrice,
             o.status,
+            o.payment_method
             o.createdAt,
             o.updatedAt,
             o.courier_id,
@@ -388,6 +372,7 @@ public class OrderDAO {
                     order.put("additional_fee", rs.getDouble("additionalFee"));
                     order.put("pay_price", rs.getDouble("payPrice"));
                     order.put("status", rs.getString("status"));
+                    order.put("method", rs.getString("payment_method"));
                     order.put("created_at", rs.getTimestamp("createdAt").toString());
                     order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
                             rs.getTimestamp("updatedAt").toString() : null);
@@ -425,6 +410,7 @@ public class OrderDAO {
             o.additionalFee,
             o.payPrice,
             o.status,
+            o.payment_method,
             o.createdAt,
             o.updatedAt,
             o.courier_id,
@@ -447,6 +433,7 @@ public class OrderDAO {
                 order.put("additional_fee", rs.getDouble("additionalFee"));
                 order.put("pay_price", rs.getDouble("payPrice"));
                 order.put("status", rs.getString("status"));
+                order.put("method", rs.getString("payment_method"));
                 order.put("created_at", rs.getTimestamp("createdAt").toString());
                 order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
                         rs.getTimestamp("updatedAt").toString() : null);
