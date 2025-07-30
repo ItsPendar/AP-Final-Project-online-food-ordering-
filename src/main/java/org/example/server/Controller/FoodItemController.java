@@ -39,4 +39,8 @@ public class FoodItemController {
     public List<Integer> getItemIDsInARestaurant(int restaurantID) throws SQLException {
         return foodItemDAO.getItemIDsInARestaurant(restaurantID);
     }
+
+    public FoodItem getFoodItemByID(int itemID) throws SQLException {
+        return foodItemDAO.getFoodItemByID(itemID);
+    }
 }

@@ -190,6 +190,7 @@ public class FoodItemDAO {
         return itemIDsList;
     }
     public FoodItem getFoodItemByID(int itemID) throws SQLException {
+        System.out.println("inside the method in food item DAO");
         String query = "SELECT * FROM foods WHERE food_id = ?";
         PreparedStatement stmt = connection.prepareStatement(query);
         stmt.setInt(1, itemID);
@@ -207,6 +208,7 @@ public class FoodItemDAO {
             }
             item.setImageBase64(rs.getString("image_base64"));
             item.setRestaurantID(rs.getInt("restaurant_id"));
+            System.out.println("method in food item DAO ended successfully");
             return item;
         }
         return null;

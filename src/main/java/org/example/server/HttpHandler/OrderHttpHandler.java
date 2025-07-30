@@ -6,8 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.example.server.Controller.OrderController;
-import org.example.server.Controller.TransactionController;
+import org.example.server.Controller.*;
 import org.example.server.Util.JWTHandler;
 import org.example.server.Util.QueryHandler;
 import org.example.server.Util.ResponseHandler;
@@ -19,17 +18,22 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class OrderHttpHandler implements HttpHandler {
     private final OrderController orderController;
     private final TransactionController transactionController;
+    private final UserController userController;
+    private final FoodItemController foodItemController;
     private List<String> itemIDs = new ArrayList<>();
 
     public OrderHttpHandler() throws SQLException {
         this.orderController = new OrderController();
         this.transactionController = new TransactionController();
+        this.userController = new UserController();
+        this.foodItemController = new FoodItemController();
     }
 
     @Override
@@ -163,6 +167,22 @@ public class OrderHttpHandler implements HttpHandler {
 
                 JSONArray response = new JSONArray();
                 for (Map<String, Object> order : history) {
+                    order.put("vendor_name", RestaurantController.getRestaurantByID(Integer.parseInt(order.get("vendor_id").toString())).getName());
+                    String courierName = UserController.getUserByID(Integer.parseInt(order.get("courier_id").toString())).getName();
+                    if(courierName.equals(user.getName()))
+                        courierName = "";
+                    order.put("courier_name", courierName);
+                    System.out.println("courier name has been put");
+                    System.out.println("order item IDs are : " + order.get("order_items"));
+                    String[] items = order.get("order_items").toString().split(",");
+                    System.out.println("item ids : " + Arrays.toString(items));
+                    List<String> itemNames = new ArrayList<>();
+                    for (String item : items) {
+                        itemNames.add(foodItemController.getFoodItemByID(Integer.parseInt(item.trim())).getName());
+                    }
+                    String itemNamesString = String.join(",", itemNames);
+                    System.out.println("item names string : " + itemNamesString);
+                    order.put("order_items", itemNamesString);
                     response.put(new JSONObject(order));
                 }
                 System.out.println("response to client : " + response);
