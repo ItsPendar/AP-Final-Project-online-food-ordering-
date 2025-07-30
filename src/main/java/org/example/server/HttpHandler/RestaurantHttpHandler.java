@@ -7,6 +7,7 @@ import org.example.server.Controller.FoodItemController;
 import org.example.server.Controller.MenuController;
 import org.example.server.Controller.RestaurantController;
 import org.example.server.Controller.UserController;
+import org.example.server.Util.ResponseHandler;
 import org.example.server.dao.UserDAO;
 import org.example.server.modules.FoodItem;
 import org.example.server.modules.Menu;
@@ -75,6 +76,26 @@ public class RestaurantHttpHandler implements HttpHandler {
                 sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());
             }
         }//create a restaurant✅
+        else if (path.matches("/restaurants/\\d+/info") && requestMethod.equalsIgnoreCase("GET")) {
+            System.out.println("get restaurant info request detected");
+            int userID = JWTHandler.getUserIDByToken(exchange);
+            int restaurantID = Integer.parseInt(exchange.getRequestURI().getPath().replace("/restaurants/", "").replace("/item", "").split("/")[0]);
+            System.out.println("restaurant id in get res info : " + restaurantID);
+            int restaurantOwnerID = RestaurantController.getOwnerIDFromRestaurantID(restaurantID);
+            if(!(userID  == restaurantOwnerID)) {
+                sendErrorResponse(exchange, 401, "Unauthorized request"); //user doesn't own this restaurant
+                return;
+            }
+            JSONObject responseBody = new JSONObject();
+            Restaurant restaurant = RestaurantController.getRestaurantByID(restaurantID);
+            responseBody.put("name", restaurant.getName());
+            responseBody.put("address", restaurant.getAddress());
+            responseBody.put("phone", restaurant.getPhone());
+            responseBody.put("logoBase64", restaurant.getLogoBase64());
+            responseBody.put("tax_fee", restaurant.getTaxFee());
+            responseBody.put("additional_fee", restaurant.getAdditionalFee());
+            ResponseHandler.sendResponse(exchange,200, responseBody);
+        }//get info of a restaurant✅
         else if (path.equals("/restaurants/mine") && requestMethod.equalsIgnoreCase("GET")) {
             //TODO : get list of restaurants
             try {
@@ -112,7 +133,6 @@ public class RestaurantHttpHandler implements HttpHandler {
             }
         }//get list of restaurants✅
         else if (path.matches("/restaurants/\\d+") && requestMethod.equalsIgnoreCase("PUT")) {
-            //TODO : update restaurant info
             int id =  Integer.parseInt(path.substring(path.lastIndexOf("/") + 1));
             int restaurantID;
             try {
@@ -138,11 +158,13 @@ public class RestaurantHttpHandler implements HttpHandler {
                 restaurant.setAdditionalFee(json.getDouble("additional_fee"));
                 try {
                     restaurantController.updateRestaurant(restaurant, restaurantID);
+                    ResponseHandler.sendResponse(exchange,200, "updated restaurant info successfully");
                 } catch (SQLException e) {
+                    ResponseHandler.sendErrorResponse(exchange,500,"Internal server error : couldn't update restaurant info");
                     throw new RuntimeException(e);
                 }
             }
-        }//update restaurant info
+        }//update restaurant info✅
         else if (path.matches("/restaurants/\\d+/item") && requestMethod.equals("POST")) {
             //TODO : add item to restaurant
             int userID = JWTHandler.getUserIDByToken(exchange);
@@ -356,6 +378,7 @@ public class RestaurantHttpHandler implements HttpHandler {
         exchange.getResponseBody().write(response);
         exchange.getResponseBody().close();
     }
+
     private void sendResponse(HttpExchange exchange, int statusCode, String message) throws IOException {
         JSONObject messageJson = new JSONObject();
         messageJson.put("message", message);
@@ -364,41 +387,14 @@ public class RestaurantHttpHandler implements HttpHandler {
         exchange.getResponseBody().write(response);
         exchange.getResponseBody().close();
     }
+
     private void sendResponse(HttpExchange exchange, int statusCode, JSONObject responseBody) throws IOException {
         byte[] response = responseBody.toString().getBytes();
         exchange.sendResponseHeaders(statusCode, response.length);
         exchange.getResponseBody().write(response);
         exchange.getResponseBody().close();
     }
-    public void handleListRestaurants(HttpExchange exchange) throws IOException {
-        if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-            sendErrorResponse(exchange, 405, "Only GET requests are allowed.");
-            return;
-        }
 
-        try {
-            List<Restaurant> restaurants = restaurantController.getAllRestaurants();
-            JSONArray responseArray = new JSONArray();
-
-            for (Restaurant r : restaurants) {
-                JSONObject json = new JSONObject();
-                json.put("name", r.getName());
-                json.put("address", r.getAddress());
-                json.put("phone", r.getPhone());
-                json.put("logoBase64", r.getLogoBase64());
-                json.put("tax_fee", r.getTaxFee());
-                json.put("additional_fee", r.getAdditionalFee());
-                responseArray.put(json);
-            }
-
-            byte[] response = responseArray.toString().getBytes();
-            exchange.sendResponseHeaders(200, response.length);
-            exchange.getResponseBody().write(response);
-            exchange.getResponseBody().close();
-        } catch (Exception e) {
-            sendErrorResponse(exchange, 500, "Server error: " + e.getMessage());
-        }
-    }
     private int extractId(String path, String prefix, String suffix) {
         try {
             if (!path.startsWith(prefix)) {

@@ -124,7 +124,6 @@ public class RestaurantDAO {
         return restaurants;
     }
 
-
     public void createRestaurant(Restaurant restaurant) throws SQLException {
         String query = "INSERT INTO restaurants (name, address, phone, logo_base64, tax_fee, additional_fee, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -167,7 +166,7 @@ public class RestaurantDAO {
     }
 
     public static void updateRestaurant(Restaurant restaurant, int restaurantID) throws SQLException {
-        String sql = "UPDATE users SET name = ?,phone_number = ?, address = ?, logo_base64 = ?, tax_fee = ?, additional_fee = ? WHERE restaurant_id = ?";
+        String sql = "UPDATE restaurants SET name = ?,phone = ?, address = ?, logo_base64 = ?, tax_fee = ?, additional_fee = ? WHERE restaurant_id = ?";
         PreparedStatement preparedStatement =
                 connection.prepareStatement(sql);
         preparedStatement.setString(1, restaurant.getName());
@@ -179,6 +178,7 @@ public class RestaurantDAO {
         preparedStatement.setInt(7,restaurantID);
         preparedStatement.executeUpdate();
     }
+
     public static int getOwnerIDFromRestaurantID(int restaurantID) {
         try {
             String query = "SELECT owner_id FROM restaurants WHERE restaurant_id = ?";
@@ -194,6 +194,7 @@ public class RestaurantDAO {
         }
         return -1;
     }
+
     public static int getRestaurantIDByOwnerID(int ownerID) {
         try {
             String query = "SELECT restaurant_id FROM restaurants WHERE owner_id = ?";
@@ -238,6 +239,5 @@ public class RestaurantDAO {
         restaurant.setLogoBase64(resultSet.getString("logo_Base64"));
         return restaurant;
     }
-
 
 }

@@ -40,9 +40,11 @@ public class RestaurantController {
     public static int getOwnerIDFromRestaurantID(int restaurantID) {
         return RestaurantDAO.getOwnerIDFromRestaurantID(restaurantID);
     }
+
     public static Restaurant getRestaurantByID(int restaurantID) {
         return RestaurantDAO.getRestaurantByID(restaurantID);
     }
+
     public static int getRestaurantIDByOwnerID(int ownerID) {
         return RestaurantDAO.getRestaurantIDByOwnerID(ownerID);
     }
