@@ -6,5 +6,6 @@ public enum Status {
     WAITING_VENDOR,
     CANCELED,
     UNKNOWN,
-    COMPLETED
+    COMPLETED,
+    ON_THE_WAY
 }

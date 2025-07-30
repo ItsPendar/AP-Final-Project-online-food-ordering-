@@ -132,7 +132,6 @@ public class OrderHttpHandler implements HttpHandler {
             }
         }//save order✅
         else if(path.equals("/orders/history") && requestMethod.equals("GET")) {
-            System.out.println("get history request detected");
             try {
                 User user = JWTHandler.getUserByToken(exchange);
                 System.out.println("userID is : " + JWTHandler.getUserIDByToken(exchange));
@@ -149,17 +148,14 @@ public class OrderHttpHandler implements HttpHandler {
                 String vendor = queryParams.get("vendor");
                 List<Map<String, Object>> history = new ArrayList<>();
                 int vendorID;
-                System.out.println("user role in get history : " + user.getUserRole());
                 if(user.getUserRole().equals("buyer")) {
                     history = orderController.getOrderHistory(JWTHandler.getUserIDByToken(exchange), null, null);
-                    System.out.println("order history for this user is : " + history);
                 }
                 else if(user.getUserRole().equals("seller")) {
                     vendorID = JWTHandler.getRestaurantIDByOwnerID(exchange);
                     history = orderController.getOrdersByVendorId(vendorID);
                 }
                 else if(user.getUserRole().equals("courier")) {
-                    System.out.println("starting to get courier order history");
                     history = orderController.getOrdersByCourierId(JWTHandler.getUserIDByToken(exchange));
                 }
                 else
@@ -172,20 +168,15 @@ public class OrderHttpHandler implements HttpHandler {
                     if(courierName.equals(user.getName()))
                         courierName = "";
                     order.put("courier_name", courierName);
-                    System.out.println("courier name has been put");
-                    System.out.println("order item IDs are : " + order.get("order_items"));
                     String[] items = order.get("order_items").toString().split(",");
-                    System.out.println("item ids : " + Arrays.toString(items));
                     List<String> itemNames = new ArrayList<>();
                     for (String item : items) {
                         itemNames.add(foodItemController.getFoodItemByID(Integer.parseInt(item.trim())).getName());
                     }
                     String itemNamesString = String.join(",", itemNames);
-                    System.out.println("item names string : " + itemNamesString);
                     order.put("order_items", itemNamesString);
                     response.put(new JSONObject(order));
                 }
-                System.out.println("response to client : " + response);
                 ResponseHandler.sendResponse(exchange,200,response);
             } catch (SQLException e) {
                 ResponseHandler.sendResponse(exchange,500,"Internal server error : Couldn't fetch the order history");

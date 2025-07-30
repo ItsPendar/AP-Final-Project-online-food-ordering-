@@ -353,7 +353,7 @@ public class OrderDAO {
             o.payPrice,
             o.status,
             o.payment_method,
-            o.order_items
+            o.order_items,
             o.createdAt,
             o.updatedAt,
             o.courier_id,
@@ -385,7 +385,7 @@ public class OrderDAO {
                     order.put("created_at", rs.getTimestamp("createdAt").toString());
                     order.put("updated_at", rs.getTimestamp("updatedAt") != null ?
                             rs.getTimestamp("updatedAt").toString() : null);
-                    order.put("courier_id", rs.getInt("courier_id"));
+                    order.put("courier_id", rs.getObject("courier_id") != null ? rs.getInt("courier_id") : null);
 
                     String itemString = rs.getString("order_items");
                     List<String> itemIDs = new ArrayList<>();

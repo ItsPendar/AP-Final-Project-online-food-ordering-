@@ -3,6 +3,8 @@ package org.example.server.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.eclipse.jetty.http.HttpParser;
+import org.example.server.Controller.RestaurantController;
+import org.example.server.Controller.UserController;
 import org.example.server.Util.JWTHandler;
 import org.example.server.Util.ResponseHandler;
 import org.example.server.dao.OrderDAO;
@@ -88,18 +90,39 @@ public class DeliHttpHandler implements HttpHandler {
                 ResponseHandler.sendErrorResponse(exchange,403,"Forbidden request");
                 return;
             }
-            List<Map<String, Object>> ordersList;
+            List<Map<String, Object>> ordersListSubmitted;
+            List<Map<String, Object>> ordersListOnTheWay;
             try {
-                ordersList = orderDAO.getOrdersByStatus(Status.SUBMITTED.toString().toLowerCase());
+                ordersListSubmitted = orderDAO.getOrdersByStatus(Status.SUBMITTED.toString().toLowerCase());
+                ordersListOnTheWay = orderDAO.getOrdersByStatus(Status.ON_THE_WAY.toString().toLowerCase());
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println("list of available orders : " + ordersList);
             JSONArray response = new JSONArray();
-            for (Map<String, Object> order : ordersList) {
+            for (Map<String, Object> order : ordersListSubmitted) {
+                order.put("vendor_name", RestaurantController.getRestaurantByID(Integer.parseInt(order.get("vendor_id").toString())).getName());
+                User customer;
+                try {
+                    customer = UserController.getUserByID(Integer.parseInt(order.get("customer_id").toString()));
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                order.put("customer_name", customer.getName());
+                order.put("contact",  customer.getPhoneNumber());
                 response.put(new JSONObject(order));
             }
-            System.out.println("response to client : " + response);
+            for (Map<String, Object> order : ordersListOnTheWay) {
+                order.put("vendor_name", RestaurantController.getRestaurantByID(Integer.parseInt(order.get("vendor_id").toString())).getName());
+                User customer;
+                try {
+                    customer = UserController.getUserByID(Integer.parseInt(order.get("customer_id").toString()));
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                order.put("customer_name", customer.getName());
+                order.put("contact",  customer.getPhoneNumber());
+                response.put(new JSONObject(order));
+            }
             ResponseHandler.sendResponse(exchange,200,response);
         }
         else {
